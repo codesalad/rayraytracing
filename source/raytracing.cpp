@@ -4,6 +4,11 @@
 #endif
 #include <GL/glut.h>
 #include "raytracing.h"
+#include <cfloat>
+#include "Vec3D.h" 
+#include <stdlib.h>
+#include "mesh.h"
+#include "Vertex.h"  
 
 
 //temporary variables
@@ -23,7 +28,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+    MyMesh.loadMesh("~/Documents/rayraytracing/source/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -35,6 +40,26 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
+
+//	float t = FLT_MAX;
+/*	Vector<Triangle> triangles = MyMesh.triangles();
+	for(Triangle i: triangles){
+
+
+		
+		Vec3Df x = i.v[1] - i.v[0];
+		Vec3D y = i.v[2] - i.v[0];
+		Vec3D n = Vec3D.crossProduct(x, y).normalize();*/
+
+	float t = FLT_MAX;
+	std::vector<Triangle> triangles = MyMesh.triangles;
+	for(int i = 0; i < triangles.size(); ++i){
+		Vertex a = MyMesh.vertices.at(triangles.at(i).v[0]);
+		Vertex b = MyMesh.vertices.at(triangles.at(i).v[1]);
+		
+		
+	}
+
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
