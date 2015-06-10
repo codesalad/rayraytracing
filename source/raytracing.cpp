@@ -77,7 +77,7 @@ void yourDebugDraw()
 
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	glColor3f(0,1,1);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
