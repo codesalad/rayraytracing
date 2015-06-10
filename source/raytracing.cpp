@@ -30,8 +30,9 @@ void init()
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 	std::wstring path = std::wstring(buffer).substr(0, pos);
 	path += L"dodgeColorTest.obj";
+	std::string res(path.begin(), path.end());
 
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+    MyMesh.loadMesh(res.c_str(), true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
