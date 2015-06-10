@@ -31,7 +31,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
-	path += L"dodgeColorTest.obj";
+	path += L"3Dscene.obj";
 	std::string res(path.begin(), path.end());
 	printf(res.c_str());
 
