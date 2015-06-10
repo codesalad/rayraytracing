@@ -62,6 +62,7 @@ void yourDebugDraw()
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
 	//glDisable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	glColor3f(1,1,1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
@@ -78,6 +79,7 @@ void yourDebugDraw()
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//glDisable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	glBegin(GL_LINES);
 	glColor3f(0,1,1);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
