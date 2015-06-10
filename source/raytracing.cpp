@@ -13,6 +13,7 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 float LightPos[4] = { 0, 0, 0, 0 };
+int selectedLight = 0;
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -140,6 +141,37 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 	case 's':
 		LightPos[0] += 5;
+		break;
+
+	case '0':
+		selectedLight = 0;
+		break;
+	case '1':
+		selectedLight = 1;
+		break;
+	case '2':
+		selectedLight = 2;
+		break;
+	case '3':
+		selectedLight = 3;
+		break;
+	case '4':
+		selectedLight = 4;
+		break;
+	case '5':
+		selectedLight = 5;
+		break;
+	case '6':
+		selectedLight = 6;
+		break;
+	case '7':
+		selectedLight = 7;
+		break;
+	case '8':
+		selectedLight = 8;
+		break;
+	case '9':
+		selectedLight = 9;
 		break;
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
