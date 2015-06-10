@@ -12,7 +12,7 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-int LightPos[4] = { 0, 0, 0, 0 };
+float LightPos[3] = { 0, 0, 0 };
 int selectedLight = 0;
 
 //use this function for any preprocessing of the mesh.
@@ -76,7 +76,6 @@ void yourDebugDraw()
 	//state after the pop.
 
 
-	glLightiv(GL_LIGHT0, GL_POSITION, LightPos);
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//glDisable(GL_LIGHTING);
@@ -124,57 +123,85 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	switch (t)
 	{
 	case 'w':
-		LightPos[2] += 5;
+		LightPos[2] += 0.25;
 		break;
-
 	case 's':
-		LightPos[2] -= 5;
+		LightPos[2] -= 0.25;
 		break;
 
 	case 'a':
-		LightPos[1] -= 5;
+		LightPos[1] -= 0.25;
 		break;
 	case 'd':
-		LightPos[1] += 5;
+		LightPos[1] += 0.25;
 		break;
 
-	case 'r':
-		LightPos[0] -= 5;
+	case 't':
+		LightPos[0] -= 0.25;
 		break;
-
 	case 'f':
-		LightPos[0] += 5;
+		LightPos[0] += 0.25;
 		break;
 
 	case '0':
-		selectedLight = 0;
+		if (MyLightPositions.size() > 0)
+		{
+			selectedLight = 0;
+		}
 		break;
 	case '1':
-		selectedLight = 1;
+		if (MyLightPositions.size() > 1)
+		{
+			selectedLight = 1;
+		}
 		break;
 	case '2':
-		selectedLight = 2;
+		if (MyLightPositions.size() > 2)
+		{
+			selectedLight = 2;
+		}
 		break;
 	case '3':
-		selectedLight = 3;
+		if (MyLightPositions.size() > 3)
+		{
+			selectedLight = 3;
+		}
 		break;
 	case '4':
-		selectedLight = 4;
+		if (MyLightPositions.size() > 4)
+		{
+			selectedLight = 4;
+		}
 		break;
 	case '5':
-		selectedLight = 5;
+		if (MyLightPositions.size() > 5)
+		{
+			selectedLight = 5;
+		}
 		break;
 	case '6':
-		selectedLight = 6;
+		if (MyLightPositions.size() > 6)
+		{
+			selectedLight = 6;
+		}
 		break;
 	case '7':
-		selectedLight = 7;
+		if (MyLightPositions.size() > 7)
+		{
+			selectedLight = 7;
+		}
 		break;
 	case '8':
-		selectedLight = 8;
+		if (MyLightPositions.size() > 8)
+		{
+			selectedLight = 8;
+		}
 		break;
 	case '9':
-		selectedLight = 9;
+		if (MyLightPositions.size() > 9)
+		{
+			selectedLight = 9;
+		}
 		break;
 	}
 
@@ -184,11 +211,12 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	res[2] += LightPos[2];
 	MyLightPositions[selectedLight] = res;
 
-	glutPostRedisplay();
+	//glutPostRedisplay();
 
 	LightPos[0] = 0;
 	LightPos[1] = 0;
 	LightPos[2] = 0;
+
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
