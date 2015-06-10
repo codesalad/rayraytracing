@@ -1,6 +1,7 @@
 #include <stdio.h>
 #ifdef WIN32
 #include <windows.h>
+#include <string>
 #endif
 #include <GL/glut.h>
 #include "raytracing.h"
@@ -23,6 +24,13 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
+
+	wchar_t buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+	std::wstring path = std::wstring(buffer).substr(0, pos);
+	path += L"dodgeColorTest.obj";
+
     MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
