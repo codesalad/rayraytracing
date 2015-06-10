@@ -12,7 +12,7 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-
+float LightPos[4] = { 0, 0, 0, 0 };
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -117,6 +117,30 @@ void yourDebugDraw()
 //    while to complete...
 void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination)
 {
+	switch (t)
+	{
+	case GLUT_KEY_UP:
+		LightPos[2] += 5;
+		break;
+
+	case GLUT_KEY_DOWN:
+		LightPos[2] -= 5;
+		break;
+
+	case GLUT_KEY_LEFT:
+		LightPos[1] -= 5;
+		break;
+	case GLUT_KEY_RIGHT:
+		LightPos[1] += 5;
+		break;
+
+	case 'w':
+		LightPos[0] -= 5;
+		break;
+
+	case 's':
+		LightPos[0] += 5;
+		break;
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
