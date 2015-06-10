@@ -120,26 +120,26 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 {
 	switch (t)
 	{
-	case GLUT_KEY_UP:
+	case 'w':
 		LightPos[2] += 5;
 		break;
 
-	case GLUT_KEY_DOWN:
+	case 's':
 		LightPos[2] -= 5;
 		break;
 
-	case GLUT_KEY_LEFT:
+	case 'a':
 		LightPos[1] -= 5;
 		break;
-	case GLUT_KEY_RIGHT:
+	case 'd':
 		LightPos[1] += 5;
 		break;
 
-	case 'w':
+	case 'r':
 		LightPos[0] -= 5;
 		break;
 
-	case 's':
+	case 'f':
 		LightPos[0] += 5;
 		break;
 
@@ -180,6 +180,8 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	res[1] += LightPos[1];
 	res[2] += LightPos[2];
 	MyLightPositions[selectedLight] = res;
+
+	glutPostRedisplay();
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
