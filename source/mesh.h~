@@ -92,7 +92,7 @@ class Material
 
         void set_textureName(const std::string & s)//name of the texture image file
         {
-            textureName_=s;	
+            textureName_=s;
         }
 
 		void set_name(const std::string & s )

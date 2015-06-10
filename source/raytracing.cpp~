@@ -46,7 +46,7 @@ void PutPixel(int& x, int& y, Vec3Df color)
 
 }
 
-void Shade(int level,Vec3Df hit, Vec3Df &color)
+void Shade(level, hit, &color)
 {
 	Vec3Df directColor, reflectedRay, reflectedColor, refractedRay, refractedColor;
 
@@ -58,24 +58,7 @@ void Shade(int level,Vec3Df hit, Vec3Df &color)
 	color = directColor + reflection * reflectedColor + transmission * refractedColor;
 }
 
-void ComputeDirectLight(Vec3Df hit, int &triangleIndex, Vec3Df &directColor )
-{
-	for(unsigned int i=0; i<MyLightPositions.size(); ++i){
-		if( shadowtest(MylightPositions[i],hit) ){
-			Material mat = MyMesh.materials[triangleMaterials[triangleIndex]];
-			
-			Vec3Df diff = mat.Kd;
-			Vec3Df amb = mat.Ka;
-			Vec3Df spec = mat.Ks;
-		} 
-	
-	}	
-
-
-
-
-}
-
+void ComputeDirectLight( hit, &directC
 
 void yourDebugDraw()
 {
