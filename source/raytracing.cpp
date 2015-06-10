@@ -61,7 +61,7 @@ void yourDebugDraw()
 	
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
-	glDisable(GL_LIGHTING);
+	//glDisable(GL_LIGHTING);
 	glColor3f(1,1,1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
