@@ -173,13 +173,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	case '9':
 		selectedLight = 9;
 		break;
-
-		Vec3Df res = MyLightPositions[selectedLight];
-		res[0] += LightPos[0];
-		res[1] += LightPos[1];
-		res[2] += LightPos[2];
-		MyLightPositions[selectedLight] = res;
 	}
+
+	Vec3Df res = MyLightPositions[selectedLight];
+	res[0] += LightPos[0];
+	res[1] += LightPos[1];
+	res[2] += LightPos[2];
+	MyLightPositions[selectedLight] = res;
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
