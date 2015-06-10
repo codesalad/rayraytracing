@@ -12,7 +12,7 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-float LightPos[4] = { 0, 0, 0, 0 };
+int LightPos[4] = { 0, 0, 0, 0 };
 int selectedLight = 0;
 
 //use this function for any preprocessing of the mesh.
@@ -76,6 +76,7 @@ void yourDebugDraw()
 	//state after the pop.
 
 
+	glLightiv(GL_LIGHT0, GL_POSITION, LightPos);
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	//glDisable(GL_LIGHTING);
@@ -184,6 +185,10 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	MyLightPositions[selectedLight] = res;
 
 	glutPostRedisplay();
+
+	LightPos[0] = 0;
+	LightPos[1] = 0;
+	LightPos[2] = 0;
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
