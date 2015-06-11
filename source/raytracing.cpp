@@ -248,9 +248,13 @@ void Shading()
 
 void ComputeAmbient()
 {
+	int selLight = 0;
+	int selTriangle = 0;
+	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
+
 	glEnable(GL_AMBIENT);
-	Vec3Df ambient;
-	Vec3Df ligth =  MyLightPositions[0];
+	Vec3Df ambient = MyMesh.materials[trMaterialIndex].Ka;
+	Vec3Df ligth =  MyLightPositions[selLight];
 	float dotProduct;
 
 	dotProduct = Vec3Df().dotProduct(ambient, ligth);
