@@ -247,31 +247,49 @@ void Shading()
 
 void ComputeAmbient()
 {
-
+	
 }
 
 void ComputeDiffuse()
 {
-	Vec3Df normal, lightDir;
+	Vec3Df normal;
+	Vec3Df lightDir;
 	Vec3Df diffuse;
+	Vec3Df color;
 	float dotProduct;
 
-//	normal = normalize(gl_NormalMatrix * gl_Normal);**/
-//lightDir = normalize(vec3(gl_LightSource[0].position));//
-    dotProduct = max((normal, lightDir), 0.0);
+	int selLight = 0;
+	int selTriangle = 0;
+	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
+	Vec3Df mDiffuse = MyMesh.materials[trMaterialIndex].Kd;
+	Vec3Df lDiffuse;
+	
+	//normal = normalize(gl_NormalMatrix * gl_Normal);**/
+	glEnable(GL_NORMALIZE);
+	// transform normal vector and then normalize
+	normal.normalize();
+
+    //lightDir = normalize(vec3(gl_LightSource[0].position));
+	lightDir = MyLightPositions[selLight];
+	lightDir.normalize();
+
+	//NdotL = max(dot(normal, lightDir), 0.0);
+	dotProduct = Vec3Df().dotProduct(normal, lightDir);
+	if (dotProduct < 0)
+	{
+		dotProduct = dotProduct * (-1);
+	}
+
 	//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
+	diffuse = mDiffuse * lDiffuse;
+
 	//gl_FrontColor = NdotL * diffuse;
+	color = dotProduct * diffuse;
+
 	//gl_Position = ftransform();
 }
 
 void ComputeSpecular()
 {
-
-	     //if (dotProduct > 0.0) {
-		// normalize the half-vector, and then compute the
-		// cosine (dot product) with the normal
-		//NdotHV = max(dot(normal, gl_LightSource[0].halfVector.xyz), 0.0);
-		//specular = gl_FrontMaterial.specular * gl_LightSource[0].specular *
-			//pow(NdotHV, gl_FrontMaterial.shininess);
 
 }
