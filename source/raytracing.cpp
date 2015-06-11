@@ -248,11 +248,12 @@ void Shading()
 
 void ComputeAmbient()
 {
+	glEnable(GL_AMBIENT);
 	Vec3Df ambient;
-	Vec3Df ambientLigth;
-
+	Vec3Df ligth =  MyLightPositions[0];
 	float dotProduct;
 
+	dotProduct = Vec3Df().dotProduct(ambient, ligth);
 
 }
 
