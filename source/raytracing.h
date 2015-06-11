@@ -35,9 +35,8 @@ void yourDebugDraw();
 void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination);
 
 void Shading();
-void ComputeAmbient();
-
-void ComputeDiffuse();
-void ComputeSpecular();
+void ComputeAmbient(int selLight, int selTriangle);
+void ComputeDiffuse(int selLight, int selTriangle);
+void ComputeSpecular(int selLight, int selTriangle);
 
 #endif
