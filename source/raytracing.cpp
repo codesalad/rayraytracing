@@ -258,10 +258,10 @@ float ComputeAmbient(int selLight, int selTriangle)
 	float dotProduct;
 
 	dotProduct = Vec3Df().dotProduct(ambient, ligth);
-	return float;
+	return dotProduct;
 }
 
-void ComputeDiffuse()
+void ComputeDiffuse(int selLight, int selTriangle)
 {
 	Vec3Df normal;
 	Vec3Df lightDir;
@@ -269,8 +269,6 @@ void ComputeDiffuse()
 	Vec3Df color;
 	float dotProduct;
 
-	int selLight = 0;
-	int selTriangle = 0;
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	Vec3Df mDiffuse = MyMesh.materials[trMaterialIndex].Kd();
 	Vec3Df lDiffuse;
