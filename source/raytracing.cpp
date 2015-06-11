@@ -316,11 +316,19 @@ void ComputeSpecular()
 		dotProduct = dotProduct * (-1);
 	}
 
-	if (dotProduct > 0.0) {
+	// normalize the half-vector, and then compute the
+	// cosine (dot product) with the normal
+	//NdotHV = max(dot(normal, gl_LightSource[0].halfVector.xyz), 0.0);
+	Vec3Df hvLight;
+	hvLight[0] = MyLightPositions[selLight][0] / 2;
+	hvLight[1] = MyLightPositions[selLight][1] / 2;
+	hvLight[3] = MyLightPositions[selLight][2] / 2;
+	NormalizeHV = Vec3Df().dotProduct(normal, hvLight);
+	if (NormalizeHV < 0)
+	{
+		NormalizeHV = NormalizeHV * (-1);
+	}
 
-		// normalize the half-vector, and then compute the
-		// cosine (dot product) with the normal
-		//NdotHV = max(dot(normal, gl_LightSource[0].halfVector.xyz), 0.0);
 		//specular = gl_FrontMaterial.specular * gl_LightSource[0].specular *
 			//pow(NdotHV, gl_FrontMaterial.shininess);
 
