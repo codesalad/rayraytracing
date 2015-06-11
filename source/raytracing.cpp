@@ -244,7 +244,7 @@ void Shading()
 	int selLight = 0;
 	int selTriangle = 0;
 	ComputeAmbient(selLight, selTriangle);
-	ComputeDiffuse();
+	ComputeDiffuse(selLight, selTriangle);
 	ComputeSpecular();
 }
 
@@ -261,7 +261,7 @@ float ComputeAmbient(int selLight, int selTriangle)
 	return dotProduct;
 }
 
-void ComputeDiffuse(int selLight, int selTriangle)
+Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 {
 	Vec3Df normal;
 	Vec3Df lightDir;
@@ -296,6 +296,7 @@ void ComputeDiffuse(int selLight, int selTriangle)
 	color = dotProduct * diffuse;
 
 	//gl_Position = ftransform();
+	return color;
 }
 
 void ComputeSpecular()
