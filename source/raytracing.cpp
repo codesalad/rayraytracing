@@ -260,8 +260,7 @@ void ComputeDiffuse()
 
 	int selLight = 0;
 	int selTriangle = 0;
-	unsigned int trMaterialIndex = 0;
-	trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
+	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	Vec3Df mDiffuse = MyMesh.materials[trMaterialIndex].Kd;
 	Vec3Df lDiffuse;
 	
