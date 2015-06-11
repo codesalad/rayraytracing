@@ -4,6 +4,7 @@
 #endif
 #include <GL/glut.h>
 #include "raytracing.h"
+#include <math.h>
 
 
 //temporary variables
@@ -46,35 +47,50 @@ void PutPixel(int& x, int& y, Vec3Df color)
 
 }
 
-void Shade(int level,Vec3Df hit, Vec3Df &color)
+void Shade(int level, int triangleIndex, Vec3Df ray, Vec3Df hit, Vec3Df normal, Vec3Df &color)
 {
 	Vec3Df directColor, reflectedRay, reflectedColor, refractedRay, refractedColor;
 
-	ComputeDirectLight( hit, &directColor );
-	ComputeReflectedRay( hit, &reflectedRay );
+	ComputeDirectLight( hit, normal, ray, triangleIndex, &directColor );
+	ComputeReflectedRay( ray, normal, &reflectedRay );
 	Trace( level+1, reflectedRay, &reflectedColor );
 	ComputeRefractedRay( hit, &refractedRay );
 	Trace( level+1, refractedRay, &refractedColor );
 	color = directColor + reflection * reflectedColor + transmission * refractedColor;
 }
 
-void ComputeDirectLight(Vec3Df hit, int &triangleIndex, Vec3Df &directColor )
+void ComputeDirectLight(Vec3Df hit, Vec3Df normal, Vec3Df ray, int triangleIndex, Vec3Df &directColor )
 {
+
+	
 	for(unsigned int i=0; i<MyLightPositions.size(); ++i){
 		if( shadowtest(MylightPositions[i],hit) ){
-			Material mat = MyMesh.materials[triangleMaterials[triangleIndex]];
+			Material mat = MyMesh.materials[triangleMaterials[triangleIndex]]; // all material properties for the triangle
 			
-			Vec3Df diff = mat.Kd;
-			Vec3Df amb = mat.Ka;
-			Vec3Df spec = mat.Ks;
-		} 
-	
+			Vec3Df halfDirec = (ray.normalize() + MylightPositions[i].normalize() ).normalize(); // halfdirection for Blinn-Phong specularity
+			float angle = max(dotproduct(haldDirec,ray.normalize()),0.0); 
+
+			Vec3Df diff = mat.Kd * cos(acos(dotproduct(ray, normal)); // diffuse term
+			Vec3Df amb = mat.Ka; // ambient term
+			Vec3Df spec = mat.Ks * pow(angle ,mat.Ns); // Blinn-Phong specular term
+
+			directColor += diff + amb + spec; // total color
+		}
 	}	
+}
 
+void ComputeReflectedRay( Vec3Df ray, Vec3Df normal, Vec3Df &reflectedRay )
+{
+	reflectedRay = ray.normalize() - 2 * dotproduct(normal.normalize(),ray.normalize()) * normal.normalize();
+}
 
-
+void ComputeRefractedRay( Vec3Df ray, Vec3Df normal, Vec3Df &refractedRay )
+{
+	
 
 }
+
+
 
 
 void yourDebugDraw()

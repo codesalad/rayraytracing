@@ -29,13 +29,13 @@ void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
 
 // computates color of hitpoint
-void Shade(int level, Vec3Df hit, Vec3Df &color);
+void Shade(int level, int triangleIndex, Vec3Df ray, Vec3Df hit, Vec3Df normal, Vec3Df &color);
 // draw function, pixel at(x,y) with color color
 void PutPixel(int& x, int& y, Vec3Df color);
 // computates direct color of an hitpoint
-void ComputeDirectLight(Vec3Df hit, Vec3Df &directColor);
+void ComputeDirectLight(Vec3Df hit, Vec3Df normal, Vec3Df ray, int triangleIndex, Vec3Df &directColor );
 // computates the reflected ray of the hitpoint
-void ComputeReflectedRay(Vec3Df hit, Vec3Df &reflectedRay);
+void ComputeReflectedRay( Vec3Df ray, Vec3Df normal, Vec3Df &reflectedRay );
 // computates the refracted ray of the hitpoint
 void ComputateRefractedRay(Vec3Df hit, Vec3Df &refractedRay);
 
