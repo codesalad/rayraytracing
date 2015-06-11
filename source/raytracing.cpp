@@ -41,35 +41,23 @@ void init()
 Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
 	std::vector<Triangle> triangles = MyMesh.triangles;
+
 	for (int i = 0; i < triangles.size(); ++i) {
 		// Initialize the 3 vertex points of the triangle.
-		int vertexIndex0 = triangles.at(i).v[0];
-		int vertexIndex1 = triangles.at(i).v[1];
-		int vertexIndex2 = triangles.at(i).v[2];
-
-		Vertex vertex0 = MyMesh.vertices.at(vertexIndex0);
-		Vertex vertex1 = MyMesh.vertices.at(vertexIndex1);
-		Vertex vertex2 = MyMesh.vertices.at(vertexIndex2);
+		Vertex vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
+		Vertex vertex1 = MyMesh.vertices.at(triangles.at(i).v[1]);
+		Vertex vertex2 = MyMesh.vertices.at(triangles.at(i).v[2]);
 
 		// Calculate the two edges.
-		// Vector X = Vector 1 - Vector 0.
-		// Vecotr Y = Vector 2 - Vector 0.
-		float dx1 = vertex1.p[0] - vertex0.p[0];
-		float dy1 = vertex1.p[1] - vertex0.p[1];
-		float dz1 = vertex1.p[2] - vertex0.p[2];
-
-		float dx2= vertex2.p[0] - vertex0.p[0];
-		float dy2 = vertex2.p[1] - vertex0.p[1];
-		float dz2 = vertex2.p[2] - vertex0.p[2];
-
-		// Vertex v0 and v1 are the 2 edges of the triangle. 
-		// These had to be calculated first.
+		// Vector v0 = Vector 1 - Vector 0.
+		// Vecotr v1 = Vector 2 - Vector 0.
 		Vec3D<float> v0;
 		Vec3D<float> v1;
-		v0.init(dx1, dy1, dz1);
-		v1.init(dx2, dy2, dz2);
+		v0.init(vertex1.p[0] - vertex0.p[0], vertex1.p[1] - vertex0.p[1], vertex1.p[2] - vertex0.p[2]);
+		v1.init(vertex2.p[0] - vertex0.p[0], vertex2.p[1] - vertex0.p[1], vertex2.p[2] - vertex0.p[2]);
 		
 		// Calculate the distance plane to origin.
+		// Using a vertex from the triangle, orthogonally project onto normal vector.
 		Vec3D<float> crossProductxy = Vec3D<float>::crossProduct(v0, v1);
 		Vec3D<float> normal = crossProductxy / crossProductxy.getLength();
 
@@ -79,14 +67,11 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		float D = (Vec3D<float>::dotProduct(vertexVector, normal) * normal).getLength();
 		float t = (D - Vec3D<float>::dotProduct(origin, normal))/Vec3D<float>::dotProduct(dest, normal);
 		
-		Vec3D<float> origin2;
-		origin2 = origin;
-		Vec3D<float> dest2;
-		dest2 = dest;
+		Vec3D<float> origin2 = origin;
+		Vec3D<float> dest2 = dest;
 
 		// Finished product. P is the intersection point.
 		Vec3D<float> p = origin2 + t*dest2;
-		//cout << "intersect: " << p << endl;
 
 		// vertex0 = static point, A.
 		// v0, v1 still the 2 edges connected to vertex0.
