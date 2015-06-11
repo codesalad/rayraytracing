@@ -272,7 +272,7 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	Vec3Df mDiffuse = MyMesh.materials[trMaterialIndex].Kd();
-	Vec3Df lDiffuse;
+	int lDiffuse = GL_DIFFUSE;
 	
 	//normal = normalize(gl_NormalMatrix * gl_Normal);**/
 	glEnable(GL_NORMALIZE);
@@ -311,7 +311,7 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	
 	Vec3Df mSpecular = MyMesh.materials[trMaterialIndex].Ks();
-	Vec3Df lSpecular;
+	int lSpecular = GL_SPECULAR;
 	float mShininess = MyMesh.materials[trMaterialIndex].Ns();
 	
 
