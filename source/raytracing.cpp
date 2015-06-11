@@ -300,11 +300,18 @@ void ComputeSpecular()
 {
 	Vec3Df normal;
 	Vec3Df lightDir;
+	Vec3Df specular;
 	float dotProduct;
 	float NormalizeHV;
 
 	int selLight = 0;
 	int selTriangle = 0;
+	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
+	
+	Vec3Df mSpecular = MyMesh.materials[trMaterialIndex].Ks;
+	Vec3Df lSpecular;
+	float mShininess = MyMesh.materials[trMaterialIndex].Ns;
+	
 
 	glEnable(GL_NORMALIZE);
 	normal.normalize();
@@ -317,9 +324,6 @@ void ComputeSpecular()
 		dotProduct = dotProduct * (-1);
 	}
 
-	// normalize the half-vector, and then compute the
-	// cosine (dot product) with the normal
-	//NdotHV = max(dot(normal, gl_LightSource[0].halfVector.xyz), 0.0);
 	Vec3Df hvLight;
 	hvLight[0] = MyLightPositions[selLight][0] / 2;
 	hvLight[1] = MyLightPositions[selLight][1] / 2;
@@ -329,8 +333,6 @@ void ComputeSpecular()
 	{
 		NormalizeHV = NormalizeHV * (-1);
 	}
-
-		//specular = gl_FrontMaterial.specular * gl_LightSource[0].specular *
-			//pow(NdotHV, gl_FrontMaterial.shininess);
+	specular = mSpecular * lSpecular *	pow (NormalizeHV, mShininess);
 
 }
