@@ -235,7 +235,14 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 void Shading()
 {
-
+	/*
+	use MyMesh.triangles
+	MyMesh.triangleMaterials
+	MyMesh.materials
+	*/
+	ComputeAmbient();
+	ComputeDiffuse();
+	ComputeSpecular();
 }
 
 void ComputeAmbient()
