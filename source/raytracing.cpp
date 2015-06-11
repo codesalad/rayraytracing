@@ -247,7 +247,7 @@ void Shading()
 
 void ComputeAmbient()
 {
-
+	
 }
 
 void ComputeDiffuse()
