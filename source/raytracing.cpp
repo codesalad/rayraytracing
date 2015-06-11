@@ -297,8 +297,24 @@ void ComputeDiffuse()
 
 void ComputeSpecular()
 {
+	Vec3Df normal;
+	Vec3Df lightDir;
 	float dotProduct;
 	float NormalizeHV;
+
+	int selLight = 0;
+	int selTriangle = 0;
+
+	glEnable(GL_NORMALIZE);
+	normal.normalize();
+
+	lightDir = MyLightPositions[selLight];
+	lightDir.normalize();
+	dotProduct = Vec3Df().dotProduct(normal, lightDir);
+	if (dotProduct < 0)
+	{
+		dotProduct = dotProduct * (-1);
+	}
 
 	if (dotProduct > 0.0) {
 
