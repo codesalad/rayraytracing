@@ -5,7 +5,6 @@
 #include <GL/glut.h>
 #include "raytracing.h"
 #include "Vec3D.h"
-#include <cfloat>
 
 using namespace std;
 //temporary variables
@@ -25,7 +24,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+    MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -34,11 +33,16 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
+/**
+* Tests whether the ray intersects with the triangle.
+* Using the ray, calculates the hit points and returns it.
+* Also checks if the hit point also lies within the plane using barycentric variables.
+*/
 Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
-	float t = FLT_MAX;
 	std::vector<Triangle> triangles = MyMesh.triangles;
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < triangles.size(); ++i) {
+		// Initialize the 3 vertex points of the triangle.
 		int vertexIndex0 = triangles.at(i).v[0];
 		int vertexIndex1 = triangles.at(i).v[1];
 		int vertexIndex2 = triangles.at(i).v[2];
@@ -47,9 +51,9 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		Vertex vertex1 = MyMesh.vertices.at(vertexIndex1);
 		Vertex vertex2 = MyMesh.vertices.at(vertexIndex2);
 
-		// Vector X = Vector 1 - Vector 0
-		// Vecotr Y = Vector 2 - Vector 0
-
+		// Calculate the two edges.
+		// Vector X = Vector 1 - Vector 0.
+		// Vecotr Y = Vector 2 - Vector 0.
 		float dx1 = vertex1.p[0] - vertex0.p[0];
 		float dy1 = vertex1.p[1] - vertex0.p[1];
 		float dz1 = vertex1.p[2] - vertex0.p[2];
@@ -58,14 +62,15 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		float dy2 = vertex2.p[1] - vertex0.p[1];
 		float dz2 = vertex2.p[2] - vertex0.p[2];
 
-		Vec3D<float> x;
-		Vec3D<float> y;
-
-		x.init(dx1, dy1, dz1);
-		y.init(dx2, dy2, dz2);
+		// Vertex v0 and v1 are the 2 edges of the triangle. 
+		// These had to be calculated first.
+		Vec3D<float> v0;
+		Vec3D<float> v1;
+		v0.init(dx1, dy1, dz1);
+		v1.init(dx2, dy2, dz2);
 		
-		Vec3D<float> crossProductxy = Vec3D<float>::crossProduct(x, y);
-
+		// Calculate the distance plane to origin.
+		Vec3D<float> crossProductxy = Vec3D<float>::crossProduct(v0, v1);
 		Vec3D<float> normal = crossProductxy / crossProductxy.getLength();
 
 		Vec3D<float> vertexVector;
@@ -76,26 +81,24 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		
 		Vec3D<float> origin2;
 		origin2 = origin;
-
 		Vec3D<float> dest2;
 		dest2 = dest;
 
+		// Finished product. P is the intersection point.
 		Vec3D<float> p = origin2 + t*dest2;
-		cout << "intersect: " << p << endl;
+		//cout << "intersect: " << p << endl;
 
-		// vertex0 = static point, A
-		// x & y are the 'legs', v0 = x, v1 = y
-		// v2 = P - A
-		Vec3D<float> v0 = x;
-		Vec3D<float> v1 = y;
-		Vec3D<float> v2;
-
+		// vertex0 = static point, A.
+		// v0, v1 still the 2 edges connected to vertex0.
+		// v2 = P - A.
 		float dpaX = p.p[0] - vertex0.p[0];
 		float dpaY = p.p[1] - vertex0.p[1];
 		float dpaZ = p.p[2] - vertex0.p[2];
-
+		Vec3D<float> v2;
 		v2.init(dpaX, dpaY, dpaZ);
 
+		// These dot products are derived from the linear combinations of edges.
+		// u and v are the barycentric coordinates.
 		float dot00 = Vec3D<float>::dotProduct(v0, v0);
 		float dot01 = Vec3D<float>::dotProduct(v0, v1);
 		float dot02 = Vec3D<float>::dotProduct(v0, v2);
@@ -103,14 +106,11 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		float dot12 = Vec3D<float>::dotProduct(v1, v2);
 
 		float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-
 		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-		bool insideTriangle = (u >= 0) && (v >= 0) && (u + v < 1);
-
-		if (insideTriangle) {
-			cout << " u: " << u << " v: " << v << endl;
+		if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
+			cout << "Inside triangle" << " | u: " << u << " v: " << v << endl;
 		}
 
 	}
@@ -119,7 +119,7 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
-//return the color of your pixel.
+//return the color of your pixel.git 
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	intersect(origin, dest);
