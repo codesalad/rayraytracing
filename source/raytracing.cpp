@@ -4,13 +4,10 @@
 #endif
 #include <GL/glut.h>
 #include "raytracing.h"
+#include "Vec3D.h"
 #include <cfloat>
-#include "Vec3D.h" 
-#include <stdlib.h>
-#include "mesh.h"
-#include "Vertex.h"  
 
-
+using namespace std;
 //temporary variables
 //these are only used to illustrate 
 //a simple debug drawing. A ray 
@@ -28,7 +25,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("~/Documents/rayraytracing/source/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -37,32 +34,106 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
+Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
+{
+	float t = FLT_MAX;
+	std::vector<Triangle> triangles = MyMesh.triangles;
+	Vec3D<float> p;
+
+	Vertex vertex0;
+	Vertex vertex1;
+	Vertex vertex2;
+
+	for (int i = 0; i < 1; ++i) {
+		int vertexIndex0 = triangles.at(i).v[0];
+		int vertexIndex1 = triangles.at(i).v[1];
+		int vertexIndex2 = triangles.at(i).v[2];
+
+		vertex0 = MyMesh.vertices.at(vertexIndex0);
+		vertex1 = MyMesh.vertices.at(vertexIndex1);
+
+		// Vector X = Vector 1 - Vector 0
+		// Vecotr Y = Vector 2 - Vector 0
+
+		float dx1 = vertex1.p[0] - vertex0.p[0];
+		float dy1 = vertex1.p[1] - vertex0.p[1];
+		float dz1 = vertex1.p[2] - vertex0.p[2];
+
+		float dx2= vertex2.p[0] - vertex0.p[0];
+		float dy2 = vertex2.p[1] - vertex0.p[1];
+		float dz2 = vertex2.p[2] - vertex0.p[2];
+
+		Vec3D<float> x;
+		Vec3D<float> y;
+
+		x.init(dx1, dy1, dz1);
+		y.init(dx2, dy2, dz2);
+		
+		Vec3D<float> crossProductxy = Vec3D<float>::crossProduct(x, y);
+
+		Vec3D<float> normal = crossProductxy / crossProductxy.getLength();
+
+		Vec3D<float> vertexVector;
+		vertexVector.init(vertex0.p[0], vertex1.p[1], vertex2.p[2]);
+
+		float D = (Vec3D<float>::dotProduct(vertexVector, normal) * normal).getLength();
+		float t = (D - Vec3D<float>::dotProduct(origin, normal))/Vec3D<float>::dotProduct(dest, normal);
+		
+		Vec3D<float> origin2;
+		origin2 = origin;
+
+		Vec3D<float> dest2;
+		dest2 = dest;
+
+		p = origin2 + t*dest2;
+		cout << "intersect: " << p << endl;
+	}
+
+
+
+}
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-
-//	float t = FLT_MAX;
-/*	Vector<Triangle> triangles = MyMesh.triangles();
-	for(Triangle i: triangles){
-
-
-		
-		Vec3Df x = i.v[1] - i.v[0];
-		Vec3D y = i.v[2] - i.v[0];
-		Vec3D n = Vec3D.crossProduct(x, y).normalize();*/
-
-	float t = FLT_MAX;
-	std::vector<Triangle> triangles = MyMesh.triangles;
-	for(int i = 0; i < triangles.size(); ++i){
-		Vertex a = MyMesh.vertices.at(triangles.at(i).v[0]);
-		Vertex b = MyMesh.vertices.at(triangles.at(i).v[1]);
-		
-		
-	}
+	intersect(origin, dest);
 
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
+void PutPixel(int& x, int& y, Vec3Df color)
+{
+
+
+
+
+}
+
+void Shade(int level,Vec3Df hit, Vec3Df &color)
+{
+	/*Vec3Df directColor, reflectedRay, reflectedColor, refractedRay, refractedColor;
+
+	ComputeDirectLight( hit, &directColor );
+	ComputeReflectedRay( hit, &reflectedRay );
+	Trace( level+1, reflectedRay, &reflectedColor );
+	ComputeRefractedRay( hit, &refractedRay );
+	Trace( level+1, refractedRay, &refractedColor );
+	color = directColor + reflection * reflectedColor + transmission * refractedColor;*/
+}
+
+void ComputeDirectLight(Vec3Df hit, int &triangleIndex, Vec3Df &directColor )
+{
+	/*for(unsigned int i=0; i<MyLightPositions.size(); ++i){
+		if( shadowtest(MylightPositions[i],hit) ){
+			Material mat = MyMesh.materials[triangleMaterials[triangleIndex]];
+			
+			Vec3Df diff = mat.Kd;
+			Vec3Df amb = mat.Ka;
+			Vec3Df spec = mat.Ks;
+		} 
+	
+	}	*/
+}
 
 
 void yourDebugDraw()
