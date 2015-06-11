@@ -41,7 +41,7 @@ void init()
 Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
 	std::vector<Triangle> triangles = MyMesh.triangles;
-
+	Vec3D<float> intPoint;
 	for (int i = 0; i < triangles.size(); ++i) {
 		// Initialize the 3 vertex points of the triangle.
 		Vertex vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
@@ -70,15 +70,15 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3D<float> origin2 = origin;
 		Vec3D<float> dest2 = dest;
 
-		// Finished product. P is the intersection point.
-		Vec3D<float> p = origin2 + t*dest2;
+		// Finished product. intPoint is the intersection point.
+		intPoint = origin2 + t*dest2;
 
 		// vertex0 = static point, A.
 		// v0, v1 still the 2 edges connected to vertex0.
 		// v2 = P - A.
-		float dpaX = p.p[0] - vertex0.p[0];
-		float dpaY = p.p[1] - vertex0.p[1];
-		float dpaZ = p.p[2] - vertex0.p[2];
+		float dpaX = intPoint.p[0] - vertex0.p[0];
+		float dpaY = intPoint.p[1] - vertex0.p[1];
+		float dpaZ = intPoint.p[2] - vertex0.p[2];
 		Vec3D<float> v2;
 		v2.init(dpaX, dpaY, dpaZ);
 
@@ -101,13 +101,13 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 	}
 
 
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2]);
 }
 
 //return the color of your pixel.git 
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	intersect(origin, dest);
+	Vec3D<float> hitPoint = intersect(origin, dest);
 
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
