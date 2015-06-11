@@ -232,3 +232,23 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	
 	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
+
+void Shading()
+{
+
+}
+
+void ComputeAmbient()
+{
+
+}
+
+void ComputeDiffuse()
+{
+
+}
+
+void ComputeSpecular()
+{
+
+}
