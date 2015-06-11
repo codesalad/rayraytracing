@@ -82,10 +82,41 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 
 		Vec3D<float> p = origin2 + t*dest2;
 		cout << "intersect: " << p << endl;
+
+		// vertex0 = static point, A
+		// x & y are the 'legs', v0 = x, v1 = y
+		// v2 = P - A
+		Vec3D<float> v0 = x;
+		Vec3D<float> v1 = y;
+		Vec3D<float> v2;
+
+		float dpaX = p.p[0] - vertex0.p[0];
+		float dpaY = p.p[1] - vertex0.p[1];
+		float dpaZ = p.p[2] - vertex0.p[2];
+
+		v2.init(dpaX, dpaY, dpaZ);
+
+		float dot00 = Vec3D<float>::dotProduct(v0, v0);
+		float dot01 = Vec3D<float>::dotProduct(v0, v1);
+		float dot02 = Vec3D<float>::dotProduct(v0, v2);
+		float dot11 = Vec3D<float>::dotProduct(v1, v1);
+		float dot12 = Vec3D<float>::dotProduct(v1, v2);
+
+		float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+
+		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+		bool insideTriangle = (u >= 0) && (v >= 0) && (u + v < 1);
+
+		if (insideTriangle) {
+			cout << " u: " << u << " v: " << v << endl;
+		}
+
 	}
 
 
-
+	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
 //return the color of your pixel.
