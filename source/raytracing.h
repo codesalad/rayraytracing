@@ -34,4 +34,9 @@ void yourDebugDraw();
 //want keyboard interaction? Here it is...
 void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination);
 
+void Shading();
+void ComputeAmbient();
+void ComputeDiffuse();
+void ComputeSpecular();
+
 #endif
