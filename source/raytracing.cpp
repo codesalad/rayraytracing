@@ -7,6 +7,7 @@
 #include "raytracing.h"
 
 
+
 //temporary variables
 //these are only used to illustrate 
 //a simple debug drawing. A ray 
@@ -247,7 +248,12 @@ void Shading()
 
 void ComputeAmbient()
 {
-	
+	Vec3Df ambient;
+	Vec3Df ambientLigth;
+
+	float dotProduct;
+
+
 }
 
 void ComputeDiffuse()
