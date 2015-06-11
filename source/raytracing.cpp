@@ -297,5 +297,15 @@ void ComputeDiffuse()
 
 void ComputeSpecular()
 {
+	float dotProduct;
+	float NormalizeHV;
+
+	if (dotProduct > 0.0) {
+
+		// normalize the half-vector, and then compute the
+		// cosine (dot product) with the normal
+		//NdotHV = max(dot(normal, gl_LightSource[0].halfVector.xyz), 0.0);
+		//specular = gl_FrontMaterial.specular * gl_LightSource[0].specular *
+			//pow(NdotHV, gl_FrontMaterial.shininess);
 
 }
