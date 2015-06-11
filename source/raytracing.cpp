@@ -245,7 +245,7 @@ void Shading()
 	int selTriangle = 0;
 	ComputeAmbient(selLight, selTriangle);
 	ComputeDiffuse(selLight, selTriangle);
-	ComputeSpecular();
+	ComputeSpecular(selLight, selTriangle);
 }
 
 float ComputeAmbient(int selLight, int selTriangle)
@@ -299,7 +299,7 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 	return color;
 }
 
-void ComputeSpecular()
+Vec3Df ComputeSpecular(int selLight, int selTriangle)
 {
 	Vec3Df normal;
 	Vec3Df lightDir;
@@ -307,8 +307,6 @@ void ComputeSpecular()
 	float dotProduct;
 	float NormalizeHV;
 
-	int selLight = 0;
-	int selTriangle = 0;
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	
 	Vec3Df mSpecular = MyMesh.materials[trMaterialIndex].Ks();
@@ -337,5 +335,5 @@ void ComputeSpecular()
 		NormalizeHV = NormalizeHV * (-1);
 	}
 	specular = mSpecular * lSpecular *	pow (NormalizeHV, mShininess);
-
+	return specular;
 }
