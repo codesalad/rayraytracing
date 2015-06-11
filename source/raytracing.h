@@ -36,6 +36,7 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 void Shading();
 void ComputeAmbient();
+
 void ComputeDiffuse();
 void ComputeSpecular();
 
