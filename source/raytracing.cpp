@@ -38,19 +38,14 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
 	float t = FLT_MAX;
 	std::vector<Triangle> triangles = MyMesh.triangles;
-	Vec3D<float> p;
-
-	Vertex vertex0;
-	Vertex vertex1;
-	Vertex vertex2;
-
 	for (int i = 0; i < 1; ++i) {
 		int vertexIndex0 = triangles.at(i).v[0];
 		int vertexIndex1 = triangles.at(i).v[1];
 		int vertexIndex2 = triangles.at(i).v[2];
 
-		vertex0 = MyMesh.vertices.at(vertexIndex0);
-		vertex1 = MyMesh.vertices.at(vertexIndex1);
+		Vertex vertex0 = MyMesh.vertices.at(vertexIndex0);
+		Vertex vertex1 = MyMesh.vertices.at(vertexIndex1);
+		Vertex vertex2 = MyMesh.vertices.at(vertexIndex2);
 
 		// Vector X = Vector 1 - Vector 0
 		// Vecotr Y = Vector 2 - Vector 0
@@ -85,7 +80,7 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3D<float> dest2;
 		dest2 = dest;
 
-		p = origin2 + t*dest2;
+		Vec3D<float> p = origin2 + t*dest2;
 		cout << "intersect: " << p << endl;
 	}
 
