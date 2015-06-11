@@ -241,15 +241,15 @@ void Shading()
 	MyMesh.triangleMaterials
 	MyMesh.materials
 	*/
-	ComputeAmbient();
+	int selLight = 0;
+	int selTriangle = 0;
+	ComputeAmbient(selLight, selTriangle);
 	ComputeDiffuse();
 	ComputeSpecular();
 }
 
-void ComputeAmbient()
+float ComputeAmbient(int selLight, int selTriangle)
 {
-	int selLight = 0;
-	int selTriangle = 0;
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 
 	glEnable(GL_AMBIENT);
@@ -258,7 +258,7 @@ void ComputeAmbient()
 	float dotProduct;
 
 	dotProduct = Vec3Df().dotProduct(ambient, ligth);
-
+	return float;
 }
 
 void ComputeDiffuse()
