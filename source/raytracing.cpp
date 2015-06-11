@@ -258,7 +258,7 @@ void ComputeDiffuse()
 
 //	normal = normalize(gl_NormalMatrix * gl_Normal);**/
 //lightDir = normalize(vec3(gl_LightSource[0].position));//
-	//NdotL = max(dot(normal, lightDir), 0.0);//
+    dotProduct = max((normal, lightDir), 0.0);
 	//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
 	//gl_FrontColor = NdotL * diffuse;
 	//gl_Position = ftransform();
@@ -266,5 +266,12 @@ void ComputeDiffuse()
 
 void ComputeSpecular()
 {
+
+	     //if (dotProduct > 0.0) {
+		// normalize the half-vector, and then compute the
+		// cosine (dot product) with the normal
+		//NdotHV = max(dot(normal, gl_LightSource[0].halfVector.xyz), 0.0);
+		//specular = gl_FrontMaterial.specular * gl_LightSource[0].specular *
+			//pow(NdotHV, gl_FrontMaterial.shininess);
 
 }
