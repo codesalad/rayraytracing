@@ -9,6 +9,9 @@
 #include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
+#include <time.h>
+#include <iostream>
+
 
 
 //This is the main application
@@ -29,8 +32,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 800;  // resolution X
-unsigned int WindowSize_Y = 800;  // resolution Y
+unsigned int WindowSize_X = 80;  // resolution X
+unsigned int WindowSize_Y = 80;  // resolution Y
 
 
 
@@ -188,14 +191,6 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 }
 
 
-
-
-
-
-
-
-
-
 // react to keyboard input
 void keyboard(unsigned char key, int x, int y)
 {
@@ -212,9 +207,13 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'r':
 	{
+
+		clock_t t;
+		t = clock();
+
 		//Pressing r will launch the raytracing.
 		cout<<"Raytracing"<<endl;
-				
+
 
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
@@ -254,6 +253,10 @@ void keyboard(unsigned char key, int x, int y)
 			}
 
 		result.writeImage("result.ppm");
+		
+		t = clock() - t;
+		printf ("Render time: (%f seconds).\n",((float)t)/CLOCKS_PER_SEC);
+
 		break;
 	}
 	case 27:     // touche ESC

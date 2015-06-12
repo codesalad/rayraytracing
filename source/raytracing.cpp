@@ -5,6 +5,7 @@
 #include <GL/glut.h>
 #include "raytracing.h"
 #include "Vec3D.h"
+#include <vector>
 
 using namespace std;
 //temporary variables
@@ -24,7 +25,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("cube.obj", true);
+    MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -38,10 +39,11 @@ void init()
 * Using the ray, calculates the hit points and returns it.
 * Also checks if the hit point also lies within the plane using barycentric variables.
 */
-Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
+vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
 	std::vector<Triangle> triangles = MyMesh.triangles;
 	Vec3D<float> intPoint;
+	vector<float> intersectData;
 	for (int i = 0; i < triangles.size(); ++i) {
 		// Initialize the 3 vertex points of the triangle.
 		Vertex vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
@@ -96,25 +98,54 @@ Vec3Df intersect(const Vec3Df & origin, const Vec3Df & dest)
 
 		if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
 			cout << "Inside triangle" << " | u: " << u << " v: " << v << endl;
-		}
+			//intersectData.push_back(intPoint.p[0],intPoint.p[1],intPoint.p[2], i)
+			intersectData.push_back(intPoint.p[0]);
+			intersectData.push_back(intPoint.p[1]);
+			intersectData.push_back(intPoint.p[2]);
+			intersectData.push_back(i);
+			return intersectData;
+			// push all results in a container
+			// sort it
+			// take the smallest/first
+		} 
 
+		//return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2], i);	
 	}
 
 
-	return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2]);
+	//return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2]);
 }
 
-//return the color of your pixel.git 
+Vec3Df colorPixel(Vec3Df& hitPoint, int& triangleIndex)
+{
+	//Material triangleMaterial = MyMesh.materials(MyMesh.triangleMaterials(triangleIndex));
+	std::vector<Triangle> triangles = MyMesh.triangles;
+	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
+	std::vector<Material> materials = MyMesh.materials;
+
+	int triangleMatIndex = triangleMaterials.at(triangleIndex);
+	Material mat = materials.at(triangleMatIndex);
+
+	return mat.Kd();
+}
+
+//return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	Vec3D<float> hitPoint = intersect(origin, dest);
+	vector<float> intersectData = intersect(origin, dest);
+	//cout << intersectData.size() <<endl;
+	if (intersectData.size() > 0 ) {
+		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
+		int triangleIndex = intersectData.back();
+		Vec3Df colorRBB = colorPixel(hitPoint, triangleIndex);
+		return Vec3Df(colorRBB[0], colorRBB[1], colorRBB[2]);
+	}
 
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	return Vec3Df(0,0,0);
 }
 
 void PutPixel(int& x, int& y, Vec3Df color)
 {
-
 
 
 
