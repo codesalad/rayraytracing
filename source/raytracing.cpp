@@ -6,6 +6,7 @@
 #include "raytracing.h"
 #include "Vec3D.h"
 #include <vector>
+#include <cfloat>
 
 using namespace std;
 //temporary variables
@@ -25,7 +26,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("3Dscene.obj", true);
+    MyMesh.loadMesh("/home/codesalad/cpp_workspace/rayraytracing/source/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -44,6 +45,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 	std::vector<Triangle> triangles = MyMesh.triangles;
 	Vec3D<float> intPoint;
 	vector<float> intersectData;
+	float dMax = FLT_MAX;
 	for (int i = 0; i < triangles.size(); ++i) {
 		// Initialize the 3 vertex points of the triangle.
 		Vertex vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
@@ -104,9 +106,6 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 			intersectData.push_back(intPoint.p[2]);
 			intersectData.push_back(i);
 			return intersectData;
-			// push all results in a container
-			// sort it
-			// take the smallest/first
 		} 
 
 		//return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2], i);	
