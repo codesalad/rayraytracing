@@ -7,6 +7,7 @@
 #include "Vec3D.h"
 #include <vector>
 #include <cfloat>
+#include <list>
 
 using namespace std;
 //temporary variables
@@ -26,7 +27,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("/home/codesalad/cpp_workspace/rayraytracing/source/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("/home/codesalad/cpp_workspace/rayraytracing/source/cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -43,8 +44,8 @@ void init()
 vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
 	std::vector<Triangle> triangles = MyMesh.triangles;
-	Vec3D<float> intPoint;
 	vector<float> intersectData;
+	list< list< Vec3D<float> > > intersectedTriangles;
 	float dMax = FLT_MAX;
 	for (int i = 0; i < triangles.size(); ++i) {
 		// Initialize the 3 vertex points of the triangle.
@@ -74,17 +75,49 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3D<float> origin2 = origin;
 		Vec3D<float> dest2 = dest;
 
-		// Finished product. intPoint is the intersection point.
-		intPoint = origin2 + t*dest2;
+		// Finished product. P is the intersection point.
+		Vec3D<float> p;
+		p = origin2 + t*dest2;
 
 		// vertex0 = static point, A.
 		// v0, v1 still the 2 edges connected to vertex0.
 		// v2 = P - A.
-		float dpaX = intPoint.p[0] - vertex0.p[0];
-		float dpaY = intPoint.p[1] - vertex0.p[1];
-		float dpaZ = intPoint.p[2] - vertex0.p[2];
+		float dpaX = p.p[0] - vertex0.p[0];
+		float dpaY = p.p[1] - vertex0.p[1];
+		float dpaZ = p.p[2] - vertex0.p[2];
 		Vec3D<float> v2;
 		v2.init(dpaX, dpaY, dpaZ);
+		
+		if (D < dMax) {
+			// hitPoint contains: hitpoint, 2 edges, P-v0 and triangleIndex (bit hacky with Vec3D as container)
+
+			list< Vec3D<float> > hitPointData;
+			hitPointData.push_back(p);
+			hitPointData.push_back(v0);
+			hitPointData.push_back(v1);
+			hitPointData.push_back(v2);
+
+			Vec3D<float> triangleIndex;
+			triangleIndex.init((float)i, 0, 0);
+			hitPointData.push_back(triangleIndex);
+			intersectedTriangles.push_front(hitPointData);
+			dMax = D;
+		}
+	}
+	// Now, for the sorted list of triangles, test if they are in the triangle.
+	while (!intersectedTriangles.empty()) {
+		list<Vec3D<float> > hitPointData = 	intersectedTriangles.front();
+											intersectedTriangles.pop_front();
+		Vec3D<float> hitPoint = hitPointData.front();
+								hitPointData.pop_front();
+		Vec3D<float> v0 = 	hitPointData.front();
+							hitPointData.pop_front();
+		Vec3D<float> v1 = 	hitPointData.front();
+							hitPointData.pop_front();
+		Vec3D<float> v2 = 	hitPointData.front();
+							hitPointData.pop_front();
+		int triangleIndex = 	(float)hitPointData.front().p[0];
+								hitPointData.pop_front();
 
 		// These dot products are derived from the linear combinations of edges.
 		// u and v are the barycentric coordinates.
@@ -97,27 +130,23 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
 		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
+		//cout << "Inside triangle" << " | u: " << u << " v: " << v << endl;
 		if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
 			cout << "Inside triangle" << " | u: " << u << " v: " << v << endl;
-			//intersectData.push_back(intPoint.p[0],intPoint.p[1],intPoint.p[2], i)
-			intersectData.push_back(intPoint.p[0]);
-			intersectData.push_back(intPoint.p[1]);
-			intersectData.push_back(intPoint.p[2]);
-			intersectData.push_back(i);
-			return intersectData;
+			intersectData.clear();
+			intersectData.push_back(hitPoint.p[0]);
+			intersectData.push_back(hitPoint.p[1]);
+			intersectData.push_back(hitPoint.p[2]);
+			intersectData.push_back(triangleIndex);
+			break;
 		} 
-
-		//return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2], i);	
 	}
-
-
-	//return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2]);
+	return intersectData;
+	//return Vec3Df(hitPoint.p[0],hitPoint.p[1],hitPoint.p[2]);
 }
 
 Vec3Df colorPixel(Vec3Df& hitPoint, int& triangleIndex)
 {
-	//Material triangleMaterial = MyMesh.materials(MyMesh.triangleMaterials(triangleIndex));
 	std::vector<Triangle> triangles = MyMesh.triangles;
 	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
 	std::vector<Material> materials = MyMesh.materials;
@@ -132,7 +161,7 @@ Vec3Df colorPixel(Vec3Df& hitPoint, int& triangleIndex)
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	vector<float> intersectData = intersect(origin, dest);
-	//cout << intersectData.size() <<endl;
+	// cout << intersectData.size() <<endl;
 	if (intersectData.size() > 0 ) {
 		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
 		int triangleIndex = intersectData.back();
@@ -140,7 +169,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		return Vec3Df(colorRBB[0], colorRBB[1], colorRBB[2]);
 	}
 
-	return Vec3Df(0,0,0);
+	return Vec3Df(.1,.1,.1);
 }
 
 void PutPixel(int& x, int& y, Vec3Df color)
