@@ -27,7 +27,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("monkey.obj", true);
+    MyMesh.loadMesh("cornell.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -65,7 +65,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		
 		// Calculate the distance plane to origin.
 		// Using a vertex from the triangle, orthogonally project onto normal vector.
-		Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
+		Vec3D<float> normal = -Vec3D<float>::crossProduct(v0, v1);
 		// Saw in the slides... not sure if we need this?
 		normal.normalize();
 		if (Vec3D<float>::dotProduct(v0,normal) < 0) {
@@ -75,44 +75,40 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3D<float> vertexVector;
 		vertexVector.init(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
 		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
+		if (D < dMax) {
+			float t = (D - Vec3D<float>::dotProduct(origin, normal))/Vec3D<float>::dotProduct(dest, normal);
 
-		float t = (D - Vec3D<float>::dotProduct(origin, normal))/Vec3D<float>::dotProduct(dest, normal);
+			Vec3D<float> origin2 = origin;
+			Vec3D<float> dest2 = dest;
+			// Finished product. intPoint is the intersection point.
+			intPoint = origin2 + t*dest2;
 
-		Vec3D<float> origin2 = origin;
-		Vec3D<float> dest2 = dest;
-		// Finished product. intPoint is the intersection point.
-		intPoint = origin2 + t*dest2;
+			// vertex0 = static point, A.
+			// v0, v1 still the 2 edges connected to vertex0.
+			// v2 = P - A.
+			Vec3D<float> v2;
+			v2.init(intPoint.p[0] - vertex0.p[0], intPoint.p[1] - vertex0.p[1], intPoint.p[2] - vertex0.p[2]);
 
-		// vertex0 = static point, A.
-		// v0, v1 still the 2 edges connected to vertex0.
-		// v2 = P - A.
-		float dpaX = intPoint.p[0] - vertex0.p[0];
-		float dpaY = intPoint.p[1] - vertex0.p[1];
-		float dpaZ = intPoint.p[2] - vertex0.p[2];
-		Vec3D<float> v2;
-		v2.init(dpaX, dpaY, dpaZ);
+			// These dot products are derived from the linear combinations of edges.
+			// u and v are the barycentric coordinates.
+			float dot00 = Vec3D<float>::dotProduct(v0, v0);
+			float dot01 = Vec3D<float>::dotProduct(v0, v1);
+			float dot02 = Vec3D<float>::dotProduct(v0, v2);
+			float dot11 = Vec3D<float>::dotProduct(v1, v1);
+			float dot12 = Vec3D<float>::dotProduct(v1, v2);
 
-		// These dot products are derived from the linear combinations of edges.
-		// u and v are the barycentric coordinates.
-		float dot00 = Vec3D<float>::dotProduct(v0, v0);
-		float dot01 = Vec3D<float>::dotProduct(v0, v1);
-		float dot02 = Vec3D<float>::dotProduct(v0, v2);
-		float dot11 = Vec3D<float>::dotProduct(v1, v1);
-		float dot12 = Vec3D<float>::dotProduct(v1, v2);
-
-		float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-		if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
-			intersectData.push_back(intPoint.p[0]);
-			intersectData.push_back(intPoint.p[1]);
-			intersectData.push_back(intPoint.p[2]);
-			intersectData.push_back(i);
-			if (D < dMax) {
+			float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+			if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
+				intersectData.push_back(intPoint.p[0]);
+				intersectData.push_back(intPoint.p[1]);
+				intersectData.push_back(intPoint.p[2]);
+				intersectData.push_back(i);
 				closestIntersect = intersectData;
 				dMax = D;
-			}
-		} 
+			} 
+		}
 	}
 	return closestIntersect;
 }
@@ -265,5 +261,5 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//...
 	
 	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+	// std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
