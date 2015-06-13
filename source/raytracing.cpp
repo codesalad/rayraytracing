@@ -27,7 +27,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("cornell.obj", true);
+    MyMesh.loadMesh("3Dscene.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -145,7 +145,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		return Vec3Df(colorRBB[0], colorRBB[1], colorRBB[2]);
 	}
 
-	return Vec3Df(.1,.1,.1);
+	return Vec3Df(.05,.05,.05);
 }
 
 void PutPixel(int& x, int& y, Vec3Df color)
