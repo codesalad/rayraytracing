@@ -27,7 +27,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("/home/codesalad/cpp_workspace/rayraytracing/source/cube.obj", true);
+    MyMesh.loadMesh("monkey.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -65,18 +65,21 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		
 		// Calculate the distance plane to origin.
 		// Using a vertex from the triangle, orthogonally project onto normal vector.
-		Vec3D<float> crossProductxy = Vec3D<float>::crossProduct(v0, v1);
-		Vec3D<float> normal = crossProductxy / crossProductxy.getLength();
+		Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
+		// Saw in the slides... not sure if we need this?
+		normal.normalize();
+		if (Vec3D<float>::dotProduct(v0,normal) < 0) {
+			normal = -normal;
+		}
 
 		Vec3D<float> vertexVector;
-		vertexVector.init(vertex0.p[0], vertex1.p[1], vertex2.p[2]);
+		vertexVector.init(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
+		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
 
-		float D = (Vec3D<float>::dotProduct(vertexVector, normal) * normal).getLength();
 		float t = (D - Vec3D<float>::dotProduct(origin, normal))/Vec3D<float>::dotProduct(dest, normal);
-		
+
 		Vec3D<float> origin2 = origin;
 		Vec3D<float> dest2 = dest;
-
 		// Finished product. intPoint is the intersection point.
 		intPoint = origin2 + t*dest2;
 
@@ -100,29 +103,25 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
 		float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 		float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
 		if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
-			cout << "Inside triangle" << " | u: " << u << " v: " << v << endl;
-			//intersectData.push_back(intPoint.p[0],intPoint.p[1],intPoint.p[2], i)
 			intersectData.push_back(intPoint.p[0]);
 			intersectData.push_back(intPoint.p[1]);
 			intersectData.push_back(intPoint.p[2]);
 			intersectData.push_back(i);
-
 			if (D < dMax) {
 				closestIntersect = intersectData;
 				dMax = D;
 			}
-
-			//return intersectData;
 		} 
 	}
-
 	return closestIntersect;
-	//return Vec3Df(intPoint.p[0],intPoint.p[1],intPoint.p[2]);
 }
 
-Vec3Df colorPixel(Vec3Df& hitPoint, int& triangleIndex)
+/**
+* Computes the direct color using the hitPoint and the triangleIndex.
+* Returns RGB Vec3Df.
+*/
+Vec3Df directColor(Vec3Df& hitPoint, int& triangleIndex)
 {
 	//Material triangleMaterial = MyMesh.materials(MyMesh.triangleMaterials(triangleIndex));
 	std::vector<Triangle> triangles = MyMesh.triangles;
@@ -132,7 +131,10 @@ Vec3Df colorPixel(Vec3Df& hitPoint, int& triangleIndex)
 	int triangleMatIndex = triangleMaterials.at(triangleIndex);
 	Material mat = materials.at(triangleMatIndex);
 
-	return mat.Kd();
+	Vec3Df diffuse = mat.Kd();
+	Vec3Df ambience = mat.Ka();
+
+	return Vec3Df(diffuse[0]+ambience[0], diffuse[1]+ambience[1], diffuse[2]+ambience[2]);
 }
 
 //return the color of your pixel.
@@ -143,11 +145,11 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	if (intersectData.size() > 0 ) {
 		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
 		int triangleIndex = intersectData.back();
-		Vec3Df colorRBB = colorPixel(hitPoint, triangleIndex);
+		Vec3Df colorRBB = directColor(hitPoint, triangleIndex);
 		return Vec3Df(colorRBB[0], colorRBB[1], colorRBB[2]);
 	}
 
-	return Vec3Df(0,0,0);
+	return Vec3Df(.1,.1,.1);
 }
 
 void PutPixel(int& x, int& y, Vec3Df color)

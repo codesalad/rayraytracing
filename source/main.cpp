@@ -32,8 +32,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 250;  // resolution X
-unsigned int WindowSize_Y = 250;  // resolution Y
+unsigned int WindowSize_X = 200;  // resolution X
+unsigned int WindowSize_Y = 200;  // resolution Y
 
 
 
@@ -212,7 +212,7 @@ void keyboard(unsigned char key, int x, int y)
 		t = clock();
 
 		//Pressing r will launch the raytracing.
-		cout<<"Raytracing"<<endl;
+		cout<<"\n\n[ Raytracing ]"<<endl;
 
 
 		//Setup an image with the size of the current image.
@@ -232,10 +232,14 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
 
-		
+
+		float progressc(0.f);		
 		for (unsigned int y=0; y<WindowSize_Y;++y)
+		{
+			++progressc;
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
+				++progressc;
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
 				float xscale=1.0f-float(x)/(WindowSize_X-1);
@@ -250,12 +254,19 @@ void keyboard(unsigned char key, int x, int y)
 				Vec3Df rgb = performRayTracing(origin, dest);
 				//store the result in an image 
 				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				//cout << "\r" << (progressc/(WindowSize_X*WindowSize_Y))*100 << "  %";
+				printf("\r[ %.0f%% ]", (progressc/(WindowSize_X*WindowSize_Y))*100);
 			}
+			printf("\r[ %.0f%% ]", (progressc/(WindowSize_X*WindowSize_Y))*100);
+		}
 
 		result.writeImage("result.ppm");
 		
 		t = clock() - t;
-		printf ("Render time: (%f seconds).\n",((float)t)/CLOCKS_PER_SEC);
+
+		std::vector<Triangle> triangles = MyMesh.triangles;
+		int size = triangles.size();
+		printf ("\n[Render time:(%f s) | Triangles: %d | Resolution: %dx%d (%d)]\n\n\n",((float)t)/CLOCKS_PER_SEC, size, WindowSize_X, WindowSize_Y, WindowSize_X*WindowSize_Y);
 
 		break;
 	}
