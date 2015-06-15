@@ -33,8 +33,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 500;  // resolution X
-unsigned int WindowSize_Y = 500;  // resolution Y
+unsigned int WindowSize_X = 250;  // resolution X
+unsigned int WindowSize_Y = 250;  // resolution Y
 
 
 
