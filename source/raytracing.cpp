@@ -35,7 +35,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
-	path += L"3Dscene.obj";
+	path += L"cornell.obj";
 	std::string res(path.begin(), path.end());
 	printf(res.c_str());
 
@@ -139,10 +139,11 @@ Vec3Df directColor(Vec3Df& hitPoint, int& triangleIndex)
 	int triangleMatIndex = triangleMaterials.at(triangleIndex);
 	Material mat = materials.at(triangleMatIndex);
 
-	Vec3Df diffuse = mat.Kd();
-	Vec3Df ambience = mat.Ka();
+	Vec3Df diffuse = ComputeDiffuse(0, triangleIndex);//mat.Kd();//
+	float ambience = ComputeAmbient(0, triangleIndex);//mat.Ka();//
+	Vec3Df specular = ComputeSpecular(0, triangleIndex);
 
-	return Vec3Df(diffuse[0]+ambience[0], diffuse[1]+ambience[1], diffuse[2]+ambience[2]);
+	return Vec3Df(diffuse[0]+ambience + specular[0], diffuse[1]+ambience + specular[0], diffuse[2]+ambience + specular[0]);
 }
 
 //return the color of your pixel.
@@ -413,7 +414,7 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	Vec3Df mDiffuse = MyMesh.materials[trMaterialIndex].Kd();
-	int lDiffuse = GL_DIFFUSE;
+	int lDiffuse = 1;
 	
 	//normal = normalize(gl_NormalMatrix * gl_Normal);**/
 	glEnable(GL_NORMALIZE);
@@ -421,7 +422,10 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 	normal.normalize();
 
     //lightDir = normalize(vec3(gl_LightSource[0].position));
-	lightDir = MyLightPositions[selLight];
+	//lightDir = MyLightPositions[selLight] - MyMesh.triangles[selTriangle].v;
+	lightDir[0] = MyLightPositions[selLight][0] - MyMesh.triangles[selTriangle].v[0];
+	lightDir[1] = MyLightPositions[selLight][1] - MyMesh.triangles[selTriangle].v[1];
+	lightDir[2] = MyLightPositions[selLight][2] - MyMesh.triangles[selTriangle].v[2];
 	lightDir.normalize();
 
 	//NdotL = max(dot(normal, lightDir), 0.0);
@@ -430,12 +434,12 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 	{
 		dotProduct = dotProduct * (-1);
 	}
-
+	int cosinus = cos(dotProduct);
 	//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
-	diffuse = mDiffuse * lDiffuse;
+	diffuse = mDiffuse * lDiffuse * cosinus;
 
 	//gl_FrontColor = NdotL * diffuse;
-	color = dotProduct * diffuse;
+	color = diffuse;
 
 	//gl_Position = ftransform();
 	return color;
