@@ -485,6 +485,11 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	glEnable(GL_NORMALIZE);
 	normal.normalize();
 
+	lightDir[0] = MyLightPositions[selLight][0] - MyMesh.triangles[selTriangle].v[0];
+	lightDir[1] = MyLightPositions[selLight][1] - MyMesh.triangles[selTriangle].v[1];
+	lightDir[2] = MyLightPositions[selLight][2] - MyMesh.triangles[selTriangle].v[2];
+	lightDir.normalize();
+
 	Vec3Df viewPoint = MyCameraPosition;
 	Vec3Df viewDir;
 	viewDir[0] = viewPoint[0] - MyMesh.triangles[selTriangle].v[0];
@@ -501,12 +506,12 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	refl.normalize();
 
 	viewDir.normalize();
-	float dotProduct2 = Vec3Df().dotProduct(refl, viewDir);
+	float dotProduct2 = Vec3Df().dotProduct((viewDir - lightDir) / (viewDir - lightDir).getLength(), normal);
 	if (dotProduct2 < 0)
 	{
 		dotProduct2 = dotProduct2 * (-1);
 	}
 
-	specular = mSpecular * lSpecular *	pow(cos(dotProduct2), mShininess);
+	specular = mSpecular * lSpecular *	pow(dotProduct2, mShininess);
 	return specular;
 }
