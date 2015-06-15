@@ -9,6 +9,10 @@
 #include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
+#include <time.h>
+#include <iostream>
+#include <cfloat>
+
 
 
 //This is the main application
@@ -29,8 +33,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 800;  // resolution X
-unsigned int WindowSize_Y = 800;  // resolution Y
+unsigned int WindowSize_X = 500;  // resolution X
+unsigned int WindowSize_Y = 500;  // resolution Y
 
 
 
@@ -188,19 +192,11 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 }
 
 
-
-
-
-
-
-
-
-
 // react to keyboard input
 void keyboard(unsigned char key, int x, int y)
 {
-    printf("key %d pressed at %d,%d\n",key,x,y);
-    fflush(stdout);
+	    //printf("key %d pressed at %d,%d\n",key,x,y);
+	    //fflush(stdout);
     switch (key)
     {
 	//add/update a light based on the camera position.
@@ -212,9 +208,13 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'r':
 	{
+
+		clock_t t;
+		t = clock();
+
 		//Pressing r will launch the raytracing.
-		cout<<"Raytracing"<<endl;
-				
+		cout<<"\n\n"<<endl;
+
 
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
@@ -226,17 +226,21 @@ void keyboard(unsigned char key, int x, int y)
 		Vec3Df origin10, dest10;
 		Vec3Df origin11, dest11;
 		Vec3Df origin, dest;
-
+		
 
 		produceRay(0,0, &origin00, &dest00);
 		produceRay(0,WindowSize_Y-1, &origin01, &dest01);
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
 
-		
+
+		float progressc(0.f);	
+		printf("\e[?25l"); /* hide the cursor */	
 		for (unsigned int y=0; y<WindowSize_Y;++y)
+		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
+				++progressc;
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
 				float xscale=1.0f-float(x)/(WindowSize_X-1);
@@ -251,9 +255,18 @@ void keyboard(unsigned char key, int x, int y)
 				Vec3Df rgb = performRayTracing(origin, dest);
 				//store the result in an image 
 				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				printf("\r[Raytracing][%.0f%%]", (progressc/(WindowSize_X*WindowSize_Y))*100);
 			}
-
+		}
+		printf("\e[?25h"); /* hide the cursor */
 		result.writeImage("result.ppm");
+		
+		t = clock() - t;
+
+		std::vector<Triangle> triangles = MyMesh.triangles;
+		int size = triangles.size();
+		printf ("\n[Render time: %f s | Triangles: %d | Resolution: %dx%d (%dpx)]\n\n\n",((float)t)/CLOCKS_PER_SEC, size, WindowSize_X, WindowSize_Y, WindowSize_X*WindowSize_Y);
+
 		break;
 	}
 	case 27:     // touche ESC
