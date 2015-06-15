@@ -35,7 +35,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
-	path += L"blocks.obj";
+	path += L"dodgeColorTest.obj";
 	std::string res(path.begin(), path.end());
 	printf(res.c_str());
 
@@ -473,7 +473,7 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	
 	Vec3Df mSpecular = MyMesh.materials[trMaterialIndex].Ks();
-	float lSpecular = 0.05;
+	float lSpecular = 0.00;
 	float mShininess = MyMesh.materials[trMaterialIndex].Ns();
 	
 	Vertex vertex1 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[0]];
