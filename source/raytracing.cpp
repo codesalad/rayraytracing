@@ -35,7 +35,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
-	path += L"dodgeColorTest.obj";
+	path += L"blocks.obj";
 	std::string res(path.begin(), path.end());
 	printf(res.c_str());
 
@@ -87,13 +87,16 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3D<float> vertexVector;
 		vertexVector.init(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
 		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
-		if (D < dMax) {
-			float t = (D - Vec3D<float>::dotProduct(origin, normal))/Vec3D<float>::dotProduct(dest, normal);
+		float t = (D - Vec3D<float>::dotProduct(origin, normal)) / Vec3D<float>::dotProduct(dest, normal);
 
-			Vec3D<float> origin2 = origin;
-			Vec3D<float> dest2 = dest;
-			// Finished product. intPoint is the intersection point.
-			intPoint = origin2 + t*dest2;
+		Vec3D<float> origin2 = origin;
+		Vec3D<float> dest2 = dest;
+		// Finished product. intPoint is the intersection point.
+		intPoint = origin2 + t*dest2;
+
+		float D2 = Vec3Df().distance(intPoint, MyCameraPosition);
+
+		if (D2 < dMax) {
 
 			// vertex0 = static point, A.
 			// v0, v1 still the 2 edges connected to vertex0.
@@ -118,7 +121,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 				intersectData.push_back(intPoint.p[2]);
 				intersectData.push_back(i);
 				closestIntersect = intersectData;
-				dMax = D;
+				dMax = D2;
 			} 
 		}
 	}
