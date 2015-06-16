@@ -31,15 +31,15 @@ void init()
 	//otherwise the application will not load properly
 
 
-	// wchar_t buffer[MAX_PATH];
-	// GetModuleFileName(NULL, buffer, MAX_PATH);
-	// std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
-	// std::wstring path = std::wstring(buffer).substr(0, pos + 1);
-	// path += L"blocks.obj";
-	// std::string res(path.begin(), path.end());
-	// printf(res.c_str());
+	wchar_t buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
+	path += L"blocks.obj";
+	std::string res(path.begin(), path.end());
+	printf(res.c_str());
 
-    MyMesh.loadMesh("cornell.obj", true);
+    MyMesh.loadMesh(res.c_str(), true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -77,7 +77,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		
 		// Calculate the distance plane to origin.
 		// Using a vertex from the triangle, orthogonally project onto normal vector.
-		Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
+		Vec3D<float> normal = -Vec3D<float>::crossProduct(v0, v1);
 		// Saw in the slides... not sure if we need this?
 		normal.normalize();
 		if (Vec3D<float>::dotProduct(v0,normal) < 0) {
@@ -119,9 +119,6 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 				intersectData.push_back(intPoint.p[0]);
 				intersectData.push_back(intPoint.p[1]);
 				intersectData.push_back(intPoint.p[2]);
-				intersectData.push_back(normal[0]);
-				intersectData.push_back(normal[1]);
-				intersectData.push_back(normal[2]);
 				intersectData.push_back(i);
 				closestIntersect = intersectData;
 				dMax = D2;
@@ -135,37 +132,39 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 * Computes the direct color using the hitPoint and the triangleIndex.
 * Returns RGB Vec3Df.
 */
-Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& dest, Vec3Df& normalIn)
+Vec3Df directColor(Vec3Df& hitPoint, int& triangleIndex)
 {
-	// Setting up mat indices
+	//Material triangleMaterial = MyMesh.materials(MyMesh.triangleMaterials(triangleIndex));
 	std::vector<Triangle> triangles = MyMesh.triangles;
 	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
 	std::vector<Material> materials = MyMesh.materials;
+
 	int triangleMatIndex = triangleMaterials.at(triangleIndex);
 	Material mat = materials.at(triangleMatIndex);
 
-	Vec3D<float> normal = normalIn;
+	Vec3Df diffuse = ComputeDiffuse(0, triangleIndex);
+	Vec3Df ambience = ComputeAmbient(0, triangleIndex);
+	Vec3Df specular = ComputeSpecular(0, triangleIndex);
 
-	// Diffuse
-	Vec3D<float> lightray = dest;
-	// Vec3D<float> lightrayN = lightray / lightray.getLength();
-	lightray.normalize();	// normalize.
+	float comp1 = diffuse[0] + ambience[0] + specular[0];
+	if (comp1 > 1)
+	{
+		comp1 = 1;
+	}
 
+	float comp2 = diffuse[1] + ambience[1] + specular[1];
+	if (comp2 > 1)
+	{
+		comp2 = 1;
+	}
 
-	float c = abs(Vec3D<float>::dotProduct(lightray, normal));
-	Vec3Df diffuse = mat.Kd() * c;
+	float comp3 = diffuse[2] + ambience[2] + specular[2];
+	if (comp3 > 1)
+	{
+		comp3 = 1;
+	}
 
-	// Specular
-	Vec3Df viewDirec = MyCameraPosition/MyCameraPosition.getLength();
-	Vec3Df halfDirec = viewDirec - lightray;
-	halfDirec.normalize();
-
-	float angle = abs(Vec3D<float>::dotProduct(halfDirec,normal));
-
-
-	Vec3Df specular = 0.5 *  mat.Ks() * pow(angle, mat.Ns());
-
-	return (mat.Ka() + diffuse + specular);
+	return Vec3Df(comp1, comp2, comp3);
 }
 
 //return the color of your pixel.
@@ -175,13 +174,45 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	//cout << intersectData.size() <<endl;
 	if (intersectData.size() > 0 ) {
 		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
-		Vec3Df normal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
 		int triangleIndex = intersectData.back();
-		Vec3Df colorRGB = computeDirectLight(hitPoint, triangleIndex, dest, normal);
-		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
+		Vec3Df colorRBB = directColor(hitPoint, triangleIndex);
+		return Vec3Df(colorRBB[0], colorRBB[1], colorRBB[2]);
 	}
 
-	return Vec3Df(0,0,0);
+	return Vec3Df(.05,.05,.05);
+}
+
+void PutPixel(int& x, int& y, Vec3Df color)
+{
+
+
+
+}
+
+void Shade(int level,Vec3Df hit, Vec3Df &color)
+{
+	/*Vec3Df directColor, reflectedRay, reflectedColor, refractedRay, refractedColor;
+
+	ComputeDirectLight( hit, &directColor );
+	ComputeReflectedRay( hit, &reflectedRay );
+	Trace( level+1, reflectedRay, &reflectedColor );
+	ComputeRefractedRay( hit, &refractedRay );
+	Trace( level+1, refractedRay, &refractedColor );
+	color = directColor + reflection * reflectedColor + transmission * refractedColor;*/
+}
+
+void ComputeDirectLight(Vec3Df hit, int &triangleIndex, Vec3Df &directColor )
+{
+	/*for(unsigned int i=0; i<MyLightPositions.size(); ++i){
+		if( shadowtest(MylightPositions[i],hit) ){
+			Material mat = MyMesh.materials[triangleMaterials[triangleIndex]];
+			
+			Vec3Df diff = mat.Kd;
+			Vec3Df amb = mat.Ka;
+			Vec3Df spec = mat.Ks;
+}
+
+	}	*/
 }
 
 
@@ -423,7 +454,7 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 	{
 		dotProduct = dotProduct * (-1);
 	}
-	double cosinus = dotProduct;
+	double cosinus = cos(dotProduct);
 	//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
 	diffuse = mDiffuse * lDiffuse * cosinus;
 
@@ -445,7 +476,7 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	unsigned int trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	
 	Vec3Df mSpecular = MyMesh.materials[trMaterialIndex].Ks();
-	float lSpecular = 0.1;
+	float lSpecular = 0.00;
 	float mShininess = MyMesh.materials[trMaterialIndex].Ns();
 	
 	Vertex vertex1 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[0]];
