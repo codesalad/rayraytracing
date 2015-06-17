@@ -3,12 +3,14 @@
 #include <windows.h>
 #include <string>
 #endif
+#include <cfloat>
+#include <future>
 #include <GL/glut.h>
+#include <list>
+#include <thread>
+#include <vector>
 #include "raytracing.h"
 #include "Vec3D.h"
-#include <vector>
-#include <cfloat>
-#include <list>
 
 using namespace std;
 //temporary variables
@@ -70,10 +72,8 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 		// Calculate the two edges.
 		// Vector v0 = Vector 1 - Vector 0.
 		// Vecotr v1 = Vector 2 - Vector 0.
-		Vec3D<float> v0;
-		Vec3D<float> v1;
-		v0.init(vertex1.p[0] - vertex0.p[0], vertex1.p[1] - vertex0.p[1], vertex1.p[2] - vertex0.p[2]);
-		v1.init(vertex2.p[0] - vertex0.p[0], vertex2.p[1] - vertex0.p[1], vertex2.p[2] - vertex0.p[2]);
+		Vec3D<float> v0(vertex1.p[0] - vertex0.p[0], vertex1.p[1] - vertex0.p[1], vertex1.p[2] - vertex0.p[2]);
+		Vec3D<float> v1(vertex2.p[0] - vertex0.p[0], vertex2.p[1] - vertex0.p[1], vertex2.p[2] - vertex0.p[2]);
 		
 		// Calculate the distance plane to origin.
 		// Using a vertex from the triangle, orthogonally project onto normal vector.
@@ -84,25 +84,23 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 			normal = -normal;
 		}
 
-		Vec3D<float> vertexVector;
-		vertexVector.init(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
+		Vec3D<float> vertexVector(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
 		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
 		float t = (D - Vec3D<float>::dotProduct(origin, normal)) / Vec3D<float>::dotProduct(dest, normal);
 
-		const Vec3D<float>& origin2 = origin;
-		const Vec3D<float>& dest2 = dest;
+		//const Vec3D<float>& origin2 = origin;
+		//const Vec3D<float>& dest2 = dest;
 		// Finished product. intPoint is the intersection point.
-		intPoint = origin2 + t*dest2;
+		intPoint = origin + t*dest;
 
-		float D2 = Vec3Df().distance(intPoint, MyCameraPosition);
+		float D2 = Vec3Df::distance(intPoint, MyCameraPosition);
 
 		if (D2 < dMax) {
 
 			// vertex0 = static point, A.
 			// v0, v1 still the 2 edges connected to vertex0.
 			// v2 = P - A.
-			Vec3D<float> v2;
-			v2.init(intPoint.p[0] - vertex0.p[0], intPoint.p[1] - vertex0.p[1], intPoint.p[2] - vertex0.p[2]);
+			Vec3D<float> v2(intPoint.p[0] - vertex0.p[0], intPoint.p[1] - vertex0.p[1], intPoint.p[2] - vertex0.p[2]);
 
 			// These dot products are derived from the linear combinations of edges.
 			// u and v are the barycentric coordinates.
@@ -135,16 +133,30 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 Vec3Df directColor(Vec3Df& hitPoint, int& triangleIndex)
 {
 	//Material triangleMaterial = MyMesh.materials(MyMesh.triangleMaterials(triangleIndex));
-	std::vector<Triangle>& triangles = MyMesh.triangles;
-	std::vector<unsigned int>& triangleMaterials = MyMesh.triangleMaterials;
-	std::vector<Material>& materials = MyMesh.materials;
+	//std::vector<Triangle>& triangles = MyMesh.triangles;
+	//std::vector<unsigned int>& triangleMaterials = MyMesh.triangleMaterials;
+	//std::vector<Material>& materials = MyMesh.materials;
 
-	char32_t& triangleMatIndex = triangleMaterials.at(triangleIndex);
-	Material& mat = materials.at(triangleMatIndex);
+	//char32_t& triangleMatIndex = triangleMaterials.at(triangleIndex);
+	//Material& mat = materials.at(triangleMatIndex);
 
-	Vec3Df diffuse = ComputeDiffuse(0, triangleIndex);
-	Vec3Df ambience = ComputeAmbient(0, triangleIndex);
-	Vec3Df specular = ComputeSpecular(0, triangleIndex);
+	int selLight = 0;
+	/*
+	auto ca = async(ComputeAmbient, selLight, triangleIndex);
+	auto cd = async(ComputeDiffuse, selLight, triangleIndex);
+	auto cs = async(ComputeDiffuse, selLight, triangleIndex);
+	*/
+	Vec3Df ambience = ComputeAmbient(selLight, triangleIndex); //ca.get();
+	Vec3Df diffuse = ComputeDiffuse(selLight, triangleIndex); //cd.get();
+	Vec3Df specular = ComputeSpecular(selLight, triangleIndex); //cs.get();
+
+	//thread ca(ComputeAmbient, selLight, triangleIndex);
+	//thread cd(ComputeDiffuse, selLight, triangleIndex);
+	//thread cs(ComputeSpecular, selLight, triangleIndex);
+
+	//ca.join();
+	//cd.join();
+	//cs.join();
 
 	float comp1 = diffuse[0] + ambience[0] + specular[0];
 	if (comp1 > 1)
@@ -398,79 +410,65 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	// std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
 
-Vec3Df ComputeAmbient(int selLight, int selTriangle)
+Vec3Df ComputeAmbient(int& selLight, int& selTriangle)
 {
-	unsigned int& trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
-
-	glEnable(GL_AMBIENT);
-	const Vec3Df& mAmbient = MyMesh.materials[trMaterialIndex].Ka();
-	float lAmbient =  1;
-	return mAmbient * lAmbient;
+	//glEnable(GL_AMBIENT);
+	return MyMesh.materials[MyMesh.triangleMaterials[selTriangle]].Ka() * 1;
 }
 
-Vec3Df ComputeDiffuse(int selLight, int selTriangle)
+Vec3Df ComputeDiffuse(int& selLight, int& selTriangle)
 {
-	Vec3Df normal;
-	Vec3Df lightDir;
-	Vec3Df diffuse;
-	Vec3Df color;
-	float dotProduct;
-
 	unsigned int& trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	const Vec3Df& mDiffuse = MyMesh.materials[trMaterialIndex].Kd();
 	float lDiffuse = 1;
 	
 	//normal = normalize(gl_NormalMatrix * gl_Normal);**/
-	glEnable(GL_NORMALIZE);
+	//glEnable(GL_NORMALIZE);
 	// transform normal vector and then normalize
 	Vertex& vertex1 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[0]];
 	Vertex& vertex2 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[1]];
-	normal = Vec3Df().crossProduct(vertex1.p, vertex2.p);
+	Vec3Df normal = Vec3Df::crossProduct(vertex1.p, vertex2.p);
 	normal.normalize();
 
     //lightDir = normalize(vec3(gl_LightSource[0].position));
+	Vec3Df lightDir;
 	lightDir[0] = MyLightPositions[selLight][0] - MyMesh.triangles[selTriangle].v[0];
 	lightDir[1] = MyLightPositions[selLight][1] - MyMesh.triangles[selTriangle].v[1];
 	lightDir[2] = MyLightPositions[selLight][2] - MyMesh.triangles[selTriangle].v[2];
 	lightDir.normalize();
 
 	//NdotL = max(dot(normal, lightDir), 0.0);
-	dotProduct = Vec3Df().dotProduct(normal, lightDir);
+	float dotProduct = Vec3Df::dotProduct(normal, lightDir);
 	if (dotProduct < 0)
 	{
 		dotProduct = dotProduct * (-1);
 	}
 	double cosinus = cos(dotProduct);
 	//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
-	diffuse = mDiffuse * lDiffuse * cosinus;
+	//Vec3Df diffuse = mDiffuse * lDiffuse * cosinus;
 
 	//gl_FrontColor = NdotL * diffuse;
-	color = diffuse;
+	//Vec3Df color = diffuse;
 
 	//gl_Position = ftransform();
-	return color;
+
+	return mDiffuse * lDiffuse * cosinus;
 }
 
-Vec3Df ComputeSpecular(int selLight, int selTriangle)
+Vec3Df ComputeSpecular(int& selLight, int& selTriangle)
 {
-	Vec3Df normal;
-	Vec3Df lightDir;
-	Vec3Df specular;
-	float dotProduct;
-	float NormalizeHV;
-
 	unsigned int& trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
-	
+	const float& mShininess = MyMesh.materials[trMaterialIndex].Ns();
 	const Vec3Df& mSpecular = MyMesh.materials[trMaterialIndex].Ks();
 	float lSpecular = 0.00;
-	const float& mShininess = MyMesh.materials[trMaterialIndex].Ns();
 	
 	Vertex& vertex1 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[0]];
 	Vertex& vertex2 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[1]];
-	normal = Vec3Df().crossProduct(vertex1.p, vertex2.p);
-	glEnable(GL_NORMALIZE);
+	Vec3Df normal = Vec3Df::crossProduct(vertex1.p, vertex2.p);
+	//glEnable(GL_NORMALIZE);
 	normal.normalize();
 
+	Vec3Df lightDir;
 	lightDir[0] = MyLightPositions[selLight][0] - MyMesh.triangles[selTriangle].v[0];
 	lightDir[1] = MyLightPositions[selLight][1] - MyMesh.triangles[selTriangle].v[1];
 	lightDir[2] = MyLightPositions[selLight][2] - MyMesh.triangles[selTriangle].v[2];
@@ -482,7 +480,7 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	viewDir[1] = viewPoint[1] - MyMesh.triangles[selTriangle].v[1];
 	viewDir[2] = viewPoint[2] - MyMesh.triangles[selTriangle].v[2];
 
-	dotProduct = Vec3Df().dotProduct(normal, viewDir);
+	float dotProduct = Vec3Df::dotProduct(normal, viewDir);
 	if (dotProduct < 0)
 	{
 		dotProduct = dotProduct * (-1);
@@ -492,12 +490,11 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	refl.normalize();
 
 	viewDir.normalize();
-	float dotProduct2 = Vec3Df().dotProduct((viewDir - refl) / (viewDir - refl).getLength(), normal);
+	float dotProduct2 = Vec3Df::dotProduct((viewDir - refl) / (viewDir - refl).getLength(), normal);
 	if (dotProduct2 < 0)
 	{
 		dotProduct2 = dotProduct2 * (-1);
 	}
 
-	specular = mSpecular * lSpecular *	pow(cos(dotProduct2), mShininess);
-	return specular;
+	return mSpecular * lSpecular * pow(cos(dotProduct2), mShininess);
 }
