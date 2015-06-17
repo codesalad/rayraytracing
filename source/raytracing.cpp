@@ -141,12 +141,12 @@ Vec3Df directColor(Vec3Df& hitPoint, int& triangleIndex)
 	//Material& mat = materials.at(triangleMatIndex);
 
 	int selLight = 0;
-	/*
-	auto ca = async(ComputeAmbient, selLight, triangleIndex);
-	auto cd = async(ComputeDiffuse, selLight, triangleIndex);
+	future<Vec3Df> ca = async(ComputeAmbient, selLight, triangleIndex);
+	/*auto cd = async(ComputeDiffuse, selLight, triangleIndex);
 	auto cs = async(ComputeDiffuse, selLight, triangleIndex);
 	*/
-	Vec3Df ambience = ComputeAmbient(selLight, triangleIndex); //ca.get();
+	//Vec3Df ambience = ComputeAmbient(selLight, triangleIndex);
+	Vec3Df ambience = ca.get();
 	Vec3Df diffuse = ComputeDiffuse(selLight, triangleIndex); //cd.get();
 	Vec3Df specular = ComputeSpecular(selLight, triangleIndex); //cs.get();
 
@@ -410,13 +410,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	// std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
 
-Vec3Df ComputeAmbient(int& selLight, int& selTriangle)
+Vec3Df ComputeAmbient(int selLight, int selTriangle)
 {
 	//glEnable(GL_AMBIENT);
 	return MyMesh.materials[MyMesh.triangleMaterials[selTriangle]].Ka() * 1;
 }
 
-Vec3Df ComputeDiffuse(int& selLight, int& selTriangle)
+Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 {
 	unsigned int& trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	const Vec3Df& mDiffuse = MyMesh.materials[trMaterialIndex].Kd();
@@ -455,7 +455,7 @@ Vec3Df ComputeDiffuse(int& selLight, int& selTriangle)
 	return mDiffuse * lDiffuse * cosinus;
 }
 
-Vec3Df ComputeSpecular(int& selLight, int& selTriangle)
+Vec3Df ComputeSpecular(int selLight, int selTriangle)
 {
 	unsigned int& trMaterialIndex = MyMesh.triangleMaterials[selTriangle];
 	const float& mShininess = MyMesh.materials[trMaterialIndex].Ns();
