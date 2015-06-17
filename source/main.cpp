@@ -37,7 +37,7 @@ unsigned int WindowSize_X = 500;  // resolution X
 unsigned int WindowSize_Y = 500;  // resolution Y
 
 
-
+std::string renderType("fast");
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -251,8 +251,16 @@ void keyboard(unsigned char key, int x, int y)
 				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
+
+				Vec3Df rgb;
+				rgb.init(0,0,0);
 				//launch raytracing for the given ray.
-				Vec3Df rgb = performRayTracing(origin, dest);
+				if(renderType.compare("fast") == 0) {
+					if(x%2 == 0 && y%2 == 0) {
+						rgb = performRayTracing(origin, dest);
+					}
+				}
+
 				//store the result in an image 
 				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
 				printf("\r[Raytracing][%.0f%%]", (progressc/(WindowSize_X*WindowSize_Y))*100);
