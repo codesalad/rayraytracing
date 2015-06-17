@@ -153,8 +153,8 @@ Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& de
 	auto cs = async(ComputeDiffuse, selLight, triangleIndex);
 	*/
 	Vec3Df ambience = ComputeAmbient(selLight, triangleIndex); //ca.get();
-	Vec3Df diffuse = ComputeDiffuse(selLight, triangleIndex); //cd.get();
-	Vec3Df specular = ComputeSpecular(selLight, triangleIndex); //cs.get();
+	//Vec3Df diffuse = ComputeDiffuse(selLight, triangleIndex); //cd.get();
+	//Vec3Df specular = ComputeSpecular(selLight, triangleIndex); //cs.get();
 
 	lightray.normalize();	// normalize.
 	hit.normalize();
