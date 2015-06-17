@@ -37,7 +37,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
-	path += L"3Dscene.obj";
+	path += L"dodgeColorTest.obj";
 	std::string res(path.begin(), path.end());
 	printf(res.c_str());
 
@@ -142,13 +142,11 @@ Vec3Df directColor(Vec3Df& hitPoint, int& triangleIndex)
 
 	int selLight = 0;
 	future<Vec3Df> ca = async(ComputeAmbient, selLight, triangleIndex);
-	/*auto cd = async(ComputeDiffuse, selLight, triangleIndex);
-	auto cs = async(ComputeDiffuse, selLight, triangleIndex);
-	*/
-	//Vec3Df ambience = ComputeAmbient(selLight, triangleIndex);
+	future<Vec3Df> cd = async(ComputeDiffuse, selLight, triangleIndex);
+	future<Vec3Df> cs = async(ComputeSpecular, selLight, triangleIndex);
 	Vec3Df ambience = ca.get();
-	Vec3Df diffuse = ComputeDiffuse(selLight, triangleIndex); //cd.get();
-	Vec3Df specular = ComputeSpecular(selLight, triangleIndex); //cs.get();
+	Vec3Df diffuse = cd.get();
+	Vec3Df specular = cs.get();
 
 	//thread ca(ComputeAmbient, selLight, triangleIndex);
 	//thread cd(ComputeDiffuse, selLight, triangleIndex);

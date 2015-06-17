@@ -12,6 +12,8 @@
 #include <time.h>
 #include <iostream>
 #include <cfloat>
+#include <future>
+#include <thread>
 
 
 
@@ -233,14 +235,13 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
 
-
+		std::vector<std::future<Vec3Df> > threads;
 		float progressc(0.f);	
 		printf("\e[?25l"); /* hide the cursor */	
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
-				++progressc;
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
 				float xscale=1.0f-float(x)/(WindowSize_X-1);
@@ -252,12 +253,24 @@ void keyboard(unsigned char key, int x, int y)
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
 				//launch raytracing for the given ray.
-				Vec3Df rgb = performRayTracing(origin, dest);
-				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
-				printf("\r[Raytracing][%.0f%%]", (progressc/(WindowSize_X*WindowSize_Y))*100);
+				threads.push_back(std::async(performRayTracing, origin, dest));
 			}
 		}
+
+		int count = 0;
+		for (unsigned int y = 0; y < WindowSize_Y; ++y)
+		{
+			for (unsigned int x = 0; x < WindowSize_X; ++x)
+			{
+				++progressc;
+				Vec3Df rgb = threads[count].get();
+				//store the result in an image 
+				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				printf("\r[Raytracing][%.0f%%]", (progressc / (WindowSize_X*WindowSize_Y)) * 100);
+				++count;
+			}
+		}
+
 		printf("\e[?25h"); /* hide the cursor */
 		result.writeImage("result.ppm");
 		
@@ -280,4 +293,3 @@ void keyboard(unsigned char key, int x, int y)
 
 	yourKeyboardFunc(key,x,y, testRayOrigin, testRayDestination);
 }
-
