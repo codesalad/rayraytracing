@@ -175,7 +175,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	if (intersectData.size() > 0 ) {
 		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
 		int triangleIndex = intersectData.back();
-		Vec3Df colorRBB = directColor(hitPoint, triangleIndex);
+		Vec3Df colorRGB = directColor(hitPoint, triangleIndex);
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
 
