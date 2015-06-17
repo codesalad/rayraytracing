@@ -236,6 +236,9 @@ void keyboard(unsigned char key, int x, int y)
 
 		float progressc(0.f);	
 		printf("\e[?25l"); /* hide the cursor */	
+
+		Vec3Df lastPixel;
+		lastPixel.init(0,0,0);
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
@@ -253,12 +256,17 @@ void keyboard(unsigned char key, int x, int y)
 
 
 				Vec3Df rgb;
+				
 				rgb.init(0,0,0);
 				//launch raytracing for the given ray.
 				if(renderType.compare("fast") == 0) {
+					rgb = lastPixel;
 					if(x%2 == 0 && y%2 == 0) {
 						rgb = performRayTracing(origin, dest);
-					}
+						lastPixel = rgb;
+					} 
+				} else {
+					rgb = performRayTracing(origin, dest);
 				}
 
 				//store the result in an image 

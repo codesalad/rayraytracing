@@ -39,7 +39,7 @@ void init()
 	// std::string res(path.begin(), path.end());
 	// printf(res.c_str());
 
-    MyMesh.loadMesh("monkey.obj", true);
+    MyMesh.loadMesh("cornell.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
