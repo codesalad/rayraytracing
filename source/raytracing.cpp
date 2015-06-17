@@ -235,7 +235,7 @@ void yourDebugDraw()
 
 	//let's draw the mesh
 	//MyMesh.draw();
-	MyMesh.drawSmooth();
+	MyMesh.draw();
 	
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
