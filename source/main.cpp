@@ -13,14 +13,10 @@
 #include <iostream>
 #include <cfloat>
 
-
-
 //This is the main application
 //Most of the code in here, does not need to be modified.
 //It is enough to take a look at the function "drawFrame",
 //in case you want to provide your own different drawing functions
-
-
 
 Vec3Df MyCameraPosition;
 
@@ -35,7 +31,6 @@ Mesh MyMesh;
 
 unsigned int WindowSize_X = 500;  // resolution X
 unsigned int WindowSize_Y = 500;  // resolution Y
-
 
 std::string renderType("fast");
 
@@ -54,8 +49,6 @@ void animate()
 	glutPostRedisplay();
 }
 
-
-
 void display(void);
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
@@ -65,6 +58,7 @@ void keyboard(unsigned char key, int x, int y);
  */
 int main(int argc, char** argv)
 {
+  
     glutInit(&argc, argv);
 
     //framebuffer setup
@@ -96,7 +90,6 @@ int main(int argc, char** argv)
     //clear color of the background is black.
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 
-	
 	// Activate rendering modes
     //activate depth test
 	glEnable( GL_DEPTH_TEST ); 
@@ -107,7 +100,6 @@ int main(int argc, char** argv)
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
 
-
 	// glut setup... to ignore
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
@@ -116,32 +108,20 @@ int main(int argc, char** argv)
     glutMotionFunc(tbMotionFunc);  // uses mouse
     glutIdleFunc( animate);
 
-
 	init();
 
-    
 	//main loop for glut... this just runs your application
     glutMainLoop();
         
     return 0;  // execution never reaches this point
 }
 
-
-
-
-
-
-
-
-
-
-
 /**
  * OpenGL setup - functions do not need to be changed! 
  * you can SKIP AHEAD TO THE KEYBOARD FUNCTION
  */
 //what to do before drawing an image
- void display(void)
+void display(void)
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);//store GL state
     // Effacer tout
@@ -167,28 +147,27 @@ void reshape(int w, int h)
     glMatrixMode(GL_MODELVIEW);
 }
 
-
 //transform the x, y position on the screen into the corresponding 3D world position
 void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 {
-		int viewport[4];
-		double modelview[16];
-		double projection[16];
-		glGetDoublev(GL_MODELVIEW_MATRIX, modelview); //recuperer matrices
-		glGetDoublev(GL_PROJECTION_MATRIX, projection); //recuperer matrices
-		glGetIntegerv(GL_VIEWPORT, viewport);//viewport
-		int y_new = viewport[3] - y_I;
+	int viewport[4];
+	double modelview[16];
+	double projection[16];
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelview); //recuperer matrices
+	glGetDoublev(GL_PROJECTION_MATRIX, projection); //recuperer matrices
+	glGetIntegerv(GL_VIEWPORT, viewport);//viewport
+	int y_new = viewport[3] - y_I;
 
-		double x, y, z;
-		
-		gluUnProject(x_I, y_new, 0, modelview, projection, viewport, &x, &y, &z);
-		origin->p[0]=float(x);
-		origin->p[1]=float(y);
-		origin->p[2]=float(z);
-		gluUnProject(x_I, y_new, 1, modelview, projection, viewport, &x, &y, &z);
-		dest->p[0]=float(x);
-		dest->p[1]=float(y);
-		dest->p[2]=float(z);
+	double x, y, z;
+	
+	gluUnProject(x_I, y_new, 0, modelview, projection, viewport, &x, &y, &z);
+	origin->p[0]=float(x);
+	origin->p[1]=float(y);
+	origin->p[2]=float(z);
+	gluUnProject(x_I, y_new, 1, modelview, projection, viewport, &x, &y, &z);
+	dest->p[0]=float(x);
+	dest->p[1]=float(y);
+	dest->p[2]=float(z);
 }
 
 
@@ -208,7 +187,7 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 'r':
 	{
-
+	  
 		clock_t t;
 		t = clock();
 

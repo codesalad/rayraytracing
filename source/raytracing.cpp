@@ -9,6 +9,7 @@
 #include <vector>
 #include <cfloat>
 #include <list>
+#include <limits>
 
 using namespace std;
 //temporary variables
@@ -18,6 +19,14 @@ Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 float LightPos[3] = { 0, 0, 0 };
 int selectedLight = 0;
+
+// bounding box values
+float xmin = std::numeric_limits<float>::max();
+float xmax = std::numeric_limits<float>::min();
+float ymin = std::numeric_limits<float>::max();
+float ymax = std::numeric_limits<float>::min();
+float zmin = std::numeric_limits<float>::max();
+float zmax = std::numeric_limits<float>::min();
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -41,7 +50,31 @@ void init()
 
     MyMesh.loadMesh("monkey.obj", true);
 	MyMesh.computeVertexNormals();
-
+	std::vector<Vertex> vertices = MyMesh.vertices;
+	
+	//Establish values for bounding box	
+	for (int i = 0; i < vertices.size(); ++i) {
+	   
+	    if (vertices[i].p[0] < xmin) {
+			xmin = vertices[i].p[0];
+	    }
+	    if (vertices[i].p[0] > xmax) {
+			xmax = vertices[i].p[0];
+	    }
+	    if (vertices[i].p[1] < ymin) {
+			ymin = vertices[i].p[1];
+	    }
+	    if (vertices[i].p[1] > ymax) {
+			ymax = vertices[i].p[1];
+	    }
+	    if (vertices[i].p[2] < zmin) {
+			zmin = vertices[i].p[2];
+	    }
+	    if (vertices[i].p[2] > zmax) {
+			zmax = vertices[i].p[2];
+	    }
+	}
+	
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
@@ -53,82 +86,110 @@ void init()
 * Using the ray, calculates the hit points and returns it.
 * Also checks if the hit point also lies within the plane using barycentric variables.
 */
-vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
-{
+vector<float> intersect(Vec3Df origin, Vec3Df dest) {
 	std::vector<Triangle> triangles = MyMesh.triangles;
 	Vec3D<float> intPoint;
 	vector<float> intersectData;
 	//list<Vec3D<float> > intersectedTriangles;
 	vector<float> closestIntersect;
+	Vec3D<float> origin3 = origin;
+	Vec3D<float> dest3 = dest;
 	float dMax = FLT_MAX;
-	for (int i = 0; i < triangles.size(); ++i) {
-		// Initialize the 3 vertex points of the triangle.
-		Vertex vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
-		Vertex vertex1 = MyMesh.vertices.at(triangles.at(i).v[1]);
-		Vertex vertex2 = MyMesh.vertices.at(triangles.at(i).v[2]);
+	// Bounding box
+	Vec3Df bborigin = origin;
+	Vec3Df bbdest = dest;
 
-		// Calculate the two edges.
-		// Vector v0 = Vector 1 - Vector 0.
-		// Vecotr v1 = Vector 2 - Vector 0.
-		Vec3D<float> v0;
-		Vec3D<float> v1;
-		v0.init(vertex1.p[0] - vertex0.p[0], vertex1.p[1] - vertex0.p[1], vertex1.p[2] - vertex0.p[2]);
-		v1.init(vertex2.p[0] - vertex0.p[0], vertex2.p[1] - vertex0.p[1], vertex2.p[2] - vertex0.p[2]);
+	// Calculate intersection parameters for each plane.
+	float txmin = (xmin - bborigin[0]) / bbdest[0];
+	float txmax = (xmax - bborigin[0]) / bbdest[0];
+	float tymin = (ymin - bborigin[1]) / bbdest[1];
+	float tymax = (ymax - bborigin[1]) / bbdest[1];
+	float tzmin = (zmin - bborigin[2]) / bbdest[2];
+	float tzmax = (zmax - bborigin[2]) / bbdest[2];
+
+	// Calculate which point is entry and which is exit.
+	float tinx = min(txmin, txmax);
+	float toutx = max(txmin, txmax);
+	float tiny = min(tymin, tymax);
+	float touty = max(tymin, tymax);
+	float tinz = min(tzmin, tzmax);
+	float toutz = max(tzmin, tzmax);
+	float tin = max(tinx, tiny, tinz);
+	float tout = min(toutx, touty, toutz);
+
+	if (tin <= tout && tout > 0) { // The ray hits the bounding box, so we do the computations.
+		for (int i = 0; i < triangles.size(); ++i) {
+			// Initialize the 3 vertex points of the triangle.
+			Vertex vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
+			Vertex vertex1 = MyMesh.vertices.at(triangles.at(i).v[1]);
+			Vertex vertex2 = MyMesh.vertices.at(triangles.at(i).v[2]);
 		
-		// Calculate the distance plane to origin.
-		// Using a vertex from the triangle, orthogonally project onto normal vector.
-		Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
-		// Saw in the slides... not sure if we need this?
-		normal.normalize();
-		if (Vec3D<float>::dotProduct(v0,normal) < 0) {
-			normal = -normal;
+			// Calculate the two edges.
+			// Vector v0 = Vector 1 - Vector 0.
+			// Vecotr v1 = Vector 2 - Vector 0.
+			Vec3D<float> v0;
+			Vec3D<float> v1;
+			v0.init(vertex1.p[0] - vertex0.p[0], vertex1.p[1] - vertex0.p[1], vertex1.p[2] - vertex0.p[2]);
+			v1.init(vertex2.p[0] - vertex0.p[0], vertex2.p[1] - vertex0.p[1], vertex2.p[2] - vertex0.p[2]);
+			
+			// Calculate the distance plane to origin.
+			// Using a vertex from the triangle, orthogonally project onto normal vector.
+			Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
+			// Saw in the slides... not sure if we need this?
+			normal.normalize();
+			if (Vec3D<float>::dotProduct(v0,normal) < 0) {
+				normal = -normal;
+			}
+
+			Vec3D<float> vertexVector;
+			vertexVector.init(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
+			float D = (Vec3D<float>::dotProduct(vertexVector, normal));
+			float t = (D - Vec3D<float>::dotProduct(origin, normal)) / Vec3D<float>::dotProduct(dest, normal);
+
+			Vec3D<float> origin2 = origin;
+			Vec3D<float> dest2 = dest;
+			// Finished product. intPoint is the intersection point.
+			intPoint = origin2 + t*dest2;
+
+			float D2 = Vec3Df().distance(intPoint, MyCameraPosition);
+
+			if (D2 < dMax) {
+				// vertex0 = static point, A.
+				// v0, v1 still the 2 edges connected to vertex0.
+				// v2 = P - A.
+				Vec3D<float> v2;
+				v2.init(intPoint.p[0] - vertex0.p[0], intPoint.p[1] - vertex0.p[1], intPoint.p[2] - vertex0.p[2]);
+
+				// These dot products are derived from the linear combinations of edges.
+				// u and v are the barycentric coordinates.
+				float dot00 = Vec3D<float>::dotProduct(v0, v0);
+				float dot01 = Vec3D<float>::dotProduct(v0, v1);
+				float dot02 = Vec3D<float>::dotProduct(v0, v2);
+				float dot11 = Vec3D<float>::dotProduct(v1, v1);
+				float dot12 = Vec3D<float>::dotProduct(v1, v2);
+
+				float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+				float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+				float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+				if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
+					intersectData.push_back(intPoint.p[0]);
+					intersectData.push_back(intPoint.p[1]);
+					intersectData.push_back(intPoint.p[2]);
+					intersectData.push_back(normal[0]);
+					intersectData.push_back(normal[1]);
+					intersectData.push_back(normal[2]);
+					intersectData.push_back(i);
+					closestIntersect = intersectData;
+					dMax = D2;
+				} 
+			}
 		}
-
-		Vec3D<float> vertexVector;
-		vertexVector.init(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
-		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
-		float t = (D - Vec3D<float>::dotProduct(origin, normal)) / Vec3D<float>::dotProduct(dest, normal);
-
-		Vec3D<float> origin2 = origin;
-		Vec3D<float> dest2 = dest;
-		// Finished product. intPoint is the intersection point.
-		intPoint = origin2 + t*dest2;
-
-		float D2 = Vec3Df().distance(intPoint, MyCameraPosition);
-
-		if (D2 < dMax) {
-
-			// vertex0 = static point, A.
-			// v0, v1 still the 2 edges connected to vertex0.
-			// v2 = P - A.
-			Vec3D<float> v2;
-			v2.init(intPoint.p[0] - vertex0.p[0], intPoint.p[1] - vertex0.p[1], intPoint.p[2] - vertex0.p[2]);
-
-			// These dot products are derived from the linear combinations of edges.
-			// u and v are the barycentric coordinates.
-			float dot00 = Vec3D<float>::dotProduct(v0, v0);
-			float dot01 = Vec3D<float>::dotProduct(v0, v1);
-			float dot02 = Vec3D<float>::dotProduct(v0, v2);
-			float dot11 = Vec3D<float>::dotProduct(v1, v1);
-			float dot12 = Vec3D<float>::dotProduct(v1, v2);
-
-			float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-			if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
-				intersectData.push_back(intPoint.p[0]);
-				intersectData.push_back(intPoint.p[1]);
-				intersectData.push_back(intPoint.p[2]);
-				intersectData.push_back(normal[0]);
-				intersectData.push_back(normal[1]);
-				intersectData.push_back(normal[2]);
-				intersectData.push_back(i);
-				closestIntersect = intersectData;
-				dMax = D2;
-			} 
-		}
+		return closestIntersect;
 	}
-	return closestIntersect;
+	else {
+		vector<float> intersectData;
+		return intersectData;
+	}
 }
 
 /**
@@ -195,7 +256,7 @@ Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& de
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	vector<float> intersectData = intersect(origin, dest);
+  vector<float> intersectData = intersect(origin, dest);
 	//cout << intersectData.size() <<endl;
 	if (intersectData.size() > 0 ) {
 		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
@@ -502,4 +563,74 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 
 	specular = mSpecular * lSpecular *	pow(cos(dotProduct2), mShininess);
 	return specular;
+}
+/*
+bool intersectBoundingBox(const Vec3Df & origin, const Vec3Df & dest)
+{
+	// bounding box
+	Vec3Df bborigin = origin;
+	Vec3Df bbdest = dest;
+
+	float txmin = (xmin - bborigin[0]) / bbdest[0];
+	float txmax = (xmax - bborigin[0]) / bbdest[0];
+	float tymin = (ymin - bborigin[1]) / bbdest[1];
+	float tymax = (ymax - bborigin[1]) / bbdest[1];
+	float tzmin = (zmin - bborigin[2]) / bbdest[2];
+	float tzmax = (zmax - bborigin[2]) / bbdest[2];
+
+	float tinx = min(txmin, txmax);
+	float toutx = max(txmin, txmax);
+	float tiny = min(tymin, tymax);
+	float touty = max(tymin, tymax);
+	float tinz = min(tzmin, tzmax);
+	float toutz = max(tzmin, tzmax);
+	float tin = max(tinx, tiny, tinz);
+	float tout = min(toutx, touty, toutz);
+	if (tin > tout || tout < 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+*/
+
+float min (float f1, float f2)
+{
+  if (f1 < f2)
+    return f1;
+  else 
+    return f2;
+}
+
+float max (float f1, float f2)
+{
+  if (f1 > f2)
+    return f1;
+  else
+    return f2;
+}
+
+float min (float f1, float f2, float f3)
+{
+  float m = f1;
+  if (f2 < m) {
+    m = f2;
+  }
+  if (f3 < m){
+    m = f3;
+  }
+  return m;
+}
+
+float max (float f1, float f2, float f3)
+{
+  float m = f1;
+  if (f2 > m)
+    m = f2;
+  if (f3 > m)
+    m = f3;
+  return m;
 }
