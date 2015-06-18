@@ -48,7 +48,7 @@ void init()
 	// std::string res(path.begin(), path.end());
 	// printf(res.c_str());
 
-    MyMesh.loadMesh("monkey.obj", true);
+    MyMesh.loadMesh("cornell.obj", true);
 	MyMesh.computeVertexNormals();
 	std::vector<Vertex> vertices = MyMesh.vertices;
 	
