@@ -15,14 +15,10 @@
 #include <future>
 #include <thread>
 
-
-
 //This is the main application
 //Most of the code in here, does not need to be modified.
 //It is enough to take a look at the function "drawFrame",
 //in case you want to provide your own different drawing functions
-
-
 
 Vec3Df MyCameraPosition;
 
@@ -38,8 +34,7 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 500;  // resolution X
 unsigned int WindowSize_Y = 500;  // resolution Y
 
-
-
+std::string renderType("fast");
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -56,8 +51,6 @@ void animate()
 	glutPostRedisplay();
 }
 
-
-
 void display(void);
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
@@ -67,6 +60,7 @@ void keyboard(unsigned char key, int x, int y);
  */
 int main(int argc, char** argv)
 {
+  
     glutInit(&argc, argv);
 
     //framebuffer setup
@@ -98,7 +92,6 @@ int main(int argc, char** argv)
     //clear color of the background is black.
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 
-	
 	// Activate rendering modes
     //activate depth test
 	glEnable( GL_DEPTH_TEST ); 
@@ -109,7 +102,6 @@ int main(int argc, char** argv)
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
 
-
 	// glut setup... to ignore
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
@@ -118,25 +110,13 @@ int main(int argc, char** argv)
     glutMotionFunc(tbMotionFunc);  // uses mouse
     glutIdleFunc( animate);
 
-
 	init();
 
-    
 	//main loop for glut... this just runs your application
     glutMainLoop();
         
     return 0;  // execution never reaches this point
 }
-
-
-
-
-
-
-
-
-
-
 
 /**
  * OpenGL setup - functions do not need to be changed! 
@@ -168,7 +148,6 @@ void reshape(int w, int h)
     gluPerspective (50, (float)w/h, 0.01, 10);
     glMatrixMode(GL_MODELVIEW);
 }
-
 
 //transform the x, y position on the screen into the corresponding 3D world position
 void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
@@ -238,6 +217,9 @@ void keyboard(unsigned char key, int x, int y)
 		std::vector<std::future<Vec3Df> > threads;
 		float progressc(0.f);	
 		printf("\e[?25l"); /* hide the cursor */	
+
+		Vec3Df lastPixel;
+		lastPixel.init(0,0,0);
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)

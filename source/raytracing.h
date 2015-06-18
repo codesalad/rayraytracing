@@ -37,5 +37,10 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 Vec3Df ComputeAmbient(int selLight, int selTriangle);
 Vec3Df ComputeDiffuse(int selLight, int selTriangle);
 Vec3Df ComputeSpecular(int selLight, int selTriangle);
+float min(float f1, float f2);
+float max(float f1, float f2);
+float min(float f1, float f2, float f3);
+float max(float f1, float f2, float f3);
+bool intersectBoundingBox(Vec3Df origin, Vec3Df dest);
 
 #endif
