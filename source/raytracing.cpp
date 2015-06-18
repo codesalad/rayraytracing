@@ -23,12 +23,12 @@ float LightPos[3] = { 0, 0, 0 };
 int selectedLight = 0;
 
 // bounding box values
-float xmin = std::numeric_limits<float>::max();
-float xmax = std::numeric_limits<float>::min();
-float ymin = std::numeric_limits<float>::max();
-float ymax = std::numeric_limits<float>::min();
-float zmin = std::numeric_limits<float>::max();
-float zmax = std::numeric_limits<float>::min();
+float xmin = numeric_limits<float>::min();
+float xmax = numeric_limits<float>::min();
+float ymin = numeric_limits<float>::max();
+float ymax = numeric_limits<float>::min();
+float zmin = numeric_limits<float>::max();
+float zmax = numeric_limits<float>::min();
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -44,10 +44,10 @@ void init()
 
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileName(NULL, buffer, MAX_PATH);
-	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
-	std::wstring path = std::wstring(buffer).substr(0, pos + 1);
+	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
+	wstring path = wstring(buffer).substr(0, pos + 1);
 	path += L"3Dscene.obj";
-	std::string res(path.begin(), path.end());
+	string res(path.begin(), path.end());
 	printf(res.c_str());
 
 	// Linux
@@ -55,7 +55,7 @@ void init()
 	// Windows
 	//MyMesh.loadMesh(res.c_str());
 	MyMesh.computeVertexNormals();
-	std::vector<Vertex>& vertices = MyMesh.vertices;
+	vector<Vertex>& vertices = MyMesh.vertices;
 
 	//Establish values for bounding box	
 	for (int i = 0; i < vertices.size(); ++i) {
@@ -93,7 +93,7 @@ void init()
 */
 vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
-	std::vector<Triangle>& triangles = MyMesh.triangles;
+	vector<Triangle>& triangles = MyMesh.triangles;
 	Vec3D<float> intPoint;
 	vector<float> intersectData;
 	vector<float> closestIntersect;
@@ -108,14 +108,14 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 	float tzmax = (zmax - origin[2]) / dest[2];
 
 	// Calculate which point is entry and which is exit.
-	float tinx = min(txmin, txmax);
-	float toutx = max(txmin, txmax);
-	float tiny = min(tymin, tymax);
-	float touty = max(tymin, tymax);
-	float tinz = min(tzmin, tzmax);
-	float toutz = max(tzmin, tzmax);
-	float tin = max(tinx, tiny, tinz);
-	float tout = min(toutx, touty, toutz);
+	float tinx = Min(txmin, txmax);
+	float toutx = Max(txmin, txmax);
+	float tiny = Min(tymin, tymax);
+	float touty = Max(tymin, tymax);
+	float tinz = Min(tzmin, tzmax);
+	float toutz = Max(tzmin, tzmax);
+	float tin = Max(tinx, tiny, tinz);
+	float tout = Min(toutx, touty, toutz);
 
 	if (tin <= tout && tout > 0) { // The ray hits the bounding box, so we do the computations.
 		for (int i = 0; i < triangles.size(); ++i) {
@@ -196,9 +196,9 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& dest, Vec3Df& normalIn)
 {
 	// Setting up mat indices
-	std::vector<Triangle>& triangles = MyMesh.triangles;
-	std::vector<unsigned int>& triangleMaterials = MyMesh.triangleMaterials;
-	std::vector<Material>& materials = MyMesh.materials;
+	vector<Triangle>& triangles = MyMesh.triangles;
+	vector<unsigned int>& triangleMaterials = MyMesh.triangleMaterials;
+	vector<Material>& materials = MyMesh.materials;
 	int triangleMatIndex = triangleMaterials.at(triangleIndex);
 	Material& mat = materials.at(triangleMatIndex);
 
@@ -210,11 +210,9 @@ Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& de
 	lightray.normalize();	// normalize.
 	hit.normalize();
 
-
 	float c = abs(Vec3D<float>::dotProduct(lightray, normalIn));
 
 	Vec3Df diffuse = mat.Kd() * c;
-
 
 	// Specular
 	Vec3Df viewDirec = MyCameraPosition/MyCameraPosition.getLength();
@@ -246,8 +244,6 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 void PutPixel(int& x, int& y, Vec3Df& color)
 {
-
-
 
 }
 
@@ -441,11 +437,10 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//...
 	
 	
-	// std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+	// cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
 
-/*
-bool intersectBoundingBox(const Vec3Df & origin, const Vec3Df & dest)
+/*bool intersectBoundingBox(const Vec3Df& origin, const Vec3Df& dest)
 {
 	// bounding box
 	Vec3Df bborigin = origin;
@@ -474,10 +469,9 @@ bool intersectBoundingBox(const Vec3Df & origin, const Vec3Df & dest)
 	{
 		return true;
 	}
-}
-*/
+}*/
 
-float min(float& f1, float& f2)
+float Min(float f1, float f2)
 {
 	if (f1 < f2)
 		return f1;
@@ -485,34 +479,20 @@ float min(float& f1, float& f2)
 		return f2;
 }
 
-float max(float f1, float f2)
+float Max(float f1, float f2)
 {
 	if (f1 > f2)
-	  return f1;
+		return f1;
 	else
 		return f2;
 }
 
-float min(float f1, float f2, float f3)
+float Min(float f1, float f2, float f3)
 {
-	/*float m = f1;
-	if (f2 < m) {
-		m = f2;
-	}
-	if (f3 < m){
-		m = f3;
-	}
-	return m;*/
-	return min(min(f1, f2), f3);
+	return Min(Min(f1, f2), f3);
 }
 
-float max(float f1, float f2, float f3)
+float Max(float f1, float f2, float f3)
 {
-	/*float m = f1;
-	if (f2 > m)
-		m = f2;
-	if (f3 > m)
-		m = f3;
-	return m;*/
-	return max(max(f1, f2), f3);
+	return Max(Max(f1, f2), f3);
 }
