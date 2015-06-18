@@ -34,8 +34,6 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 500;  // resolution X
 unsigned int WindowSize_Y = 500;  // resolution Y
 
-std::string renderType("fast");
-
 /**
  * Main function, which is drawing an image (frame) on the screen
 */
@@ -218,8 +216,6 @@ void keyboard(unsigned char key, int x, int y)
 		float progressc(0.f);	
 		printf("\e[?25l"); /* hide the cursor */	
 
-		Vec3Df lastPixel;
-		lastPixel.init(0,0,0);
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
@@ -258,7 +254,7 @@ void keyboard(unsigned char key, int x, int y)
 		
 		t = clock() - t;
 
-		std::vector<Triangle> triangles = MyMesh.triangles;
+		std::vector<Triangle>& triangles = MyMesh.triangles;
 		int size = triangles.size();
 		printf ("\n[Render time: %f s | Triangles: %d | Resolution: %dx%d (%dpx)]\n\n\n",((float)t)/CLOCKS_PER_SEC, size, WindowSize_X, WindowSize_Y, WindowSize_X*WindowSize_Y);
 

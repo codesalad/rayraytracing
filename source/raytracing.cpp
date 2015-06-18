@@ -23,12 +23,12 @@ float LightPos[3] = { 0, 0, 0 };
 int selectedLight = 0;
 
 // bounding box values
-float xmin = numeric_limits<float>::min();
-float xmax = numeric_limits<float>::min();
-float ymin = numeric_limits<float>::max();
-float ymax = numeric_limits<float>::min();
-float zmin = numeric_limits<float>::max();
-float zmax = numeric_limits<float>::min();
+float xmin = FLT_MAX;
+float xmax = -FLT_MAX;
+float ymin = FLT_MAX;
+float ymax = -FLT_MAX;
+float zmin = FLT_MAX;
+float zmax = -FLT_MAX;
 
 //use this function for any preprocessing of the mesh.
 void init()
