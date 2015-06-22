@@ -46,7 +46,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	wstring path = wstring(buffer).substr(0, pos + 1);
-	path += L"cube.obj";
+	path += L"3Dscene.obj";
 	string res(path.begin(), path.end());
 	printf(res.c_str());
 
@@ -95,7 +95,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 {
 	vector<Triangle>& triangles = MyMesh.triangles;
 	Vec3D<float> intPoint;
-	vector<float> intersectData;
+	
 	vector<float> closestIntersect;
 	float dMax = FLT_MAX;
 
@@ -168,6 +168,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 				float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 				float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 				if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
+					vector<float> intersectData;
 					intersectData.push_back(intPoint.p[0]);
 					intersectData.push_back(intPoint.p[1]);
 					intersectData.push_back(intPoint.p[2]);
