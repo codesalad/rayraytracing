@@ -42,18 +42,18 @@ void init()
 	//otherwise the application will not load properly
 
 
-	wchar_t buffer[MAX_PATH];
-	GetModuleFileName(NULL, buffer, MAX_PATH);
-	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
-	wstring path = wstring(buffer).substr(0, pos + 1);
-	path += L"3Dscene.obj";
-	string res(path.begin(), path.end());
-	printf(res.c_str());
+	// wchar_t buffer[MAX_PATH];
+	// GetModuleFileName(NULL, buffer, MAX_PATH);
+	// wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
+	// wstring path = wstring(buffer).substr(0, pos + 1);
+	// path += L"3Dscene.obj";
+	// string res(path.begin(), path.end());
+	// printf(res.c_str());
 
 	// Linux
-    //MyMesh.loadMesh("dodgeColorTest.obj", true);
+    MyMesh.loadMesh("3Dscene.obj", true);
 	// Windows
-	MyMesh.loadMesh(res.c_str(), true);
+	// MyMesh.loadMesh(res.c_str(), true);
 	MyMesh.computeVertexNormals();
 	vector<Vertex>& vertices = MyMesh.vertices;
 
@@ -169,9 +169,9 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 				float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 				if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
 					vector<float> intersectData;
-					intersectData.push_back(intPoint.p[0]);
-					intersectData.push_back(intPoint.p[1]);
-					intersectData.push_back(intPoint.p[2]);
+					// intersectData.push_back(intPoint.p[0]);
+					// intersectData.push_back(intPoint.p[1]);
+					// intersectData.push_back(intPoint.p[2]);
 
 					intersectData.push_back(normal[0]);
 					intersectData.push_back(normal[1]);
@@ -194,53 +194,47 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 * Computes the direct color using the hitPoint and the triangleIndex.
 * Returns RGB Vec3Df.
 */
-Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& dest, Vec3Df& normalIn)
+Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn)
 {
-	// Setting up mat indices
+	
 	vector<Triangle>& triangles = MyMesh.triangles;
 	vector<unsigned int>& triangleMaterials = MyMesh.triangleMaterials;
 	vector<Material>& materials = MyMesh.materials;
 	int triangleMatIndex = triangleMaterials.at(triangleIndex);
 	Material& mat = materials.at(triangleMatIndex);
-
-	Vec3D<float> lightray = dest;
-	Vec3D<float> hit = hitPoint;
-
-	// Diffuse
 	
-	lightray.normalize();	// normalize.
-	hit.normalize();
-
-	float c = abs(Vec3D<float>::dotProduct(lightray, normalIn));
-
-	Vec3Df diffuse = mat.Kd() * c;
-
-	// Specular
+	Vec3Df diffuse;
+	Vec3Df specular;
 	Vec3Df viewDirec = MyCameraPosition/MyCameraPosition.getLength();
-	Vec3Df halfDirec = viewDirec - lightray;
-	halfDirec.normalize();
 
-	float angle = abs(Vec3D<float>::dotProduct(halfDirec,normalIn));
-
-	Vec3Df specular = 1 *  mat.Ks() * pow(angle, mat.Ns());
+	for (int i = 0; i < MyLightPositions.size(); ++i) {	
+		Vec3D<float> lightray = MyLightPositions[i];
+	
+		// Diffuse
+		lightray.normalize();	// normalize.
+		float c = abs(Vec3D<float>::dotProduct(lightray, normalIn));
+		diffuse += mat.Kd() * c;
+	
+		// Specular
+		Vec3Df halfDirec = viewDirec - lightray;
+		halfDirec.normalize();
+		float angle = abs(Vec3D<float>::dotProduct(halfDirec,normalIn));
+		specular += .5 *  mat.Ks() * pow(angle, mat.Ns());
+	}
 
 	return (mat.Ka() + diffuse + specular);
-	//return mat.Ka() + specular;
 }
 
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	vector<float> intersectData = intersect(origin, dest);
-	//cout << intersectData.size() <<endl;
 	if (intersectData.size() > 0) {
-		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
-		Vec3Df normal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
+		Vec3Df normal = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
 		int triangleIndex = (int)intersectData.back();
-		Vec3Df colorRGB = computeDirectLight(hitPoint, triangleIndex, dest, normal);
+		Vec3Df colorRGB = computeDirectLight(triangleIndex, normal);
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
-
 	return Vec3Df(0, 0, 0);
 }
 
