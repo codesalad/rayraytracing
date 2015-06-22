@@ -46,7 +46,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	wstring path = wstring(buffer).substr(0, pos + 1);
-	path += L"dodgeColorTest.obj";
+	path += L"3Dscene.obj";
 	string res(path.begin(), path.end());
 	printf(res.c_str());
 

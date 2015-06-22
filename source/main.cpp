@@ -249,6 +249,8 @@ void keyboard(unsigned char key, int x, int y)
 			}
 		}
 
+		threads.resize(0);
+
 		printf("\e[?25h"); /* hide the cursor */
 		result.writeImage("result.ppm");
 		
