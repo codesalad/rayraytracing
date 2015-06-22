@@ -46,7 +46,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	wstring path = wstring(buffer).substr(0, pos + 1);
-	path += L"3Dscene.obj";
+	path += L"cube.obj";
 	string res(path.begin(), path.end());
 	printf(res.c_str());
 
@@ -58,7 +58,7 @@ void init()
 	vector<Vertex>& vertices = MyMesh.vertices;
 
 	//Establish values for bounding box	
-	for (int i = 0; i < vertices.size(); ++i) {
+	for (unsigned int i = 0; i < vertices.size(); ++i) {
 	   
 	    if (vertices[i].p[0] < xmin) {
 			xmin = vertices[i].p[0];
@@ -118,7 +118,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 	float tout = Min(toutx, touty, toutz);
 
 	if (tin <= tout && tout > 0) { // The ray hits the bounding box, so we do the computations.
-		for (int i = 0; i < triangles.size(); ++i) {
+		for (unsigned int i = 0; i < triangles.size(); ++i) {
 			// Initialize the 3 vertex points of the triangle.
 			Vertex& vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
 			Vertex& vertex1 = MyMesh.vertices.at(triangles.at(i).v[1]);
@@ -176,7 +176,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 					intersectData.push_back(normal[1]);
 					intersectData.push_back(normal[2]);
 
-					intersectData.push_back(i);
+					intersectData.push_back((float)i);
 					closestIntersect = intersectData;
 					dMax = D2;
 				} 
@@ -234,7 +234,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	if (intersectData.size() > 0) {
 		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
 		Vec3Df normal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
-		int triangleIndex = intersectData.back();
+		int triangleIndex = (int)intersectData.back();
 		Vec3Df colorRGB = computeDirectLight(hitPoint, triangleIndex, dest, normal);
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
@@ -275,7 +275,7 @@ void yourDebugDraw()
 	glColor3f(1,1,1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
+	for (unsigned int i=0;i<MyLightPositions.size();++i)
 		glVertex3fv(MyLightPositions[i].pointer());
 	glEnd();
 	glPopAttrib();//restore all GL attributes
