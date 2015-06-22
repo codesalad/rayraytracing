@@ -224,6 +224,7 @@ Vec3Df computeDirectLight(Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& de
 	Vec3Df specular = 1 *  mat.Ks() * pow(angle, mat.Ns());
 
 	return (mat.Ka() + diffuse + specular);
+	//return mat.Ka() + specular;
 }
 
 //return the color of your pixel.
