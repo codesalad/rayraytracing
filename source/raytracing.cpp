@@ -133,6 +133,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 			// Calculate the distance plane to origin.
 			// Using a vertex from the triangle, orthogonally project onto normal vector.
 			Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
+
 			// Saw in the slides... not sure if we need this?
 			normal.normalize();
 			if (Vec3D<float>::dotProduct(v0,normal) < 0) {
