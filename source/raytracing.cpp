@@ -11,6 +11,7 @@
 #include <vector>
 #include "raytracing.h"
 #include "Vec3D.h"
+#include "jpeglib.h"
 
 using namespace std;
 //temporary variables
@@ -418,29 +419,29 @@ Vec3Df ComputeDiffuse(int selLight, int selTriangle)
 	Vec3Df normal = Vec3Df::crossProduct(vertex1.p, vertex2.p);
 	normal.normalize();
 
-    //lightDir = normalize(vec3(gl_LightSource[0].position));
-	Vec3Df lightDir;
-	lightDir[0] = MyLightPositions[selLight][0] - MyMesh.triangles[selTriangle].v[0];
-	lightDir[1] = MyLightPositions[selLight][1] - MyMesh.triangles[selTriangle].v[1];
-	lightDir[2] = MyLightPositions[selLight][2] - MyMesh.triangles[selTriangle].v[2];
-	lightDir.normalize();
+//lightDir = normalize(vec3(gl_LightSource[0].position));
+Vec3Df lightDir;
+lightDir[0] = MyLightPositions[selLight][0] - MyMesh.triangles[selTriangle].v[0];
+lightDir[1] = MyLightPositions[selLight][1] - MyMesh.triangles[selTriangle].v[1];
+lightDir[2] = MyLightPositions[selLight][2] - MyMesh.triangles[selTriangle].v[2];
+lightDir.normalize();
 
-	//NdotL = max(dot(normal, lightDir), 0.0);
-	float dotProduct = Vec3Df::dotProduct(normal, lightDir);
-	if (dotProduct < 0)
-	{
-		dotProduct = dotProduct * (-1);
-	}
-	double cosinus = cos(dotProduct);
-	//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
-	//Vec3Df diffuse = mDiffuse * lDiffuse * cosinus;
+//NdotL = max(dot(normal, lightDir), 0.0);
+float dotProduct = Vec3Df::dotProduct(normal, lightDir);
+if (dotProduct < 0)
+{
+	dotProduct = dotProduct * (-1);
+}
+double cosinus = cos(dotProduct);
+//diffuse = gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse;
+//Vec3Df diffuse = mDiffuse * lDiffuse * cosinus;
 
-	//gl_FrontColor = NdotL * diffuse;
-	//Vec3Df color = diffuse;
+//gl_FrontColor = NdotL * diffuse;
+//Vec3Df color = diffuse;
 
-	//gl_Position = ftransform();
+//gl_Position = ftransform();
 
-	return mDiffuse * lDiffuse * cosinus;
+return mDiffuse * lDiffuse * cosinus;
 }
 
 Vec3Df ComputeSpecular(int selLight, int selTriangle)
@@ -449,7 +450,7 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	const float& mShininess = MyMesh.materials[trMaterialIndex].Ns();
 	const Vec3Df& mSpecular = MyMesh.materials[trMaterialIndex].Ks();
 	float lSpecular = 0.00;
-	
+
 	Vertex& vertex1 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[0]];
 	Vertex& vertex2 = MyMesh.vertices[MyMesh.triangles[selTriangle].v[1]];
 	Vec3Df normal = Vec3Df::crossProduct(vertex1.p, vertex2.p);
@@ -485,4 +486,84 @@ Vec3Df ComputeSpecular(int selLight, int selTriangle)
 	}
 
 	return mSpecular * lSpecular * pow(cos(dotProduct2), mShininess);
+}
+
+void DecodeJPG(jpeg_decompress_struct* cinfo, tImageJPG *pImageData){
+
+	jpeg_read_header(cinfo, TRUE);
+	jpeg_start_decompress(cinfo);
+
+	pImageData->rowSpan = cinfo->image_width * cinfo->num_components;
+	pImageData->sizeX = cinfo->image_width;
+	pImageData->sizeY = cinfo->image_height;
+
+	pImageData->data = new unsigned char[pImageData->rowSpan * pImageData->sizeY];
+
+	unsigned char** row = new unsigned char *[pImageData->sizeY];
+	for (int i = 0; i < pImageData->sizeY; i++){
+		row[i] = &(pImageData->data[i*pImageData->rowSpan]);
+	}
+
+	int read = 0;
+	while (cinfo->output_scanline < cinfo->output_height){
+		read = jpeg_read_scanlines(cinfo, &row[read], cinfo->output_height - read);
+	}
+
+	delete[] row;
+	jpeg_finish_decompress(cinfo);
+}
+
+tImageJPG * LoadJPG(const char *fileName) {
+	struct jpeg_decompress_struct cinfo;
+	tImageJPG *pImageData = NULL;
+	FILE *pFile;
+
+	if ((pFile = fopen(fileName, "rgb")) == NULL) {
+
+	//MessageBox(g_hWnd, "Unable to load file", "Error", MB_OK);
+	return NULL;
+	}
+	jpeg_error_mgr error;
+
+	cinfo.err = jpeg_std_error(&error);
+
+	jpeg_create_decompress(&cinfo);
+	jpeg_stdio_src(&cinfo, pFile);
+
+	pImageData = (tImageJPG*)malloc(sizeof(tImageJPG));
+
+	DecodeJPG(&cinfo, pImageData);
+
+	jpeg_destroy_decompress(&cinfo);
+
+	fclose(pFile);
+	
+	return pImageData;
+}
+
+
+void TextureCreate(UINT textureArray[], LPSTR strFileName, int texture){
+	if (!strFileName){
+		return;
+	}
+
+	tImageJPG *pImage = LoadJPG(strFileName);
+
+	if (pImage == NULL){
+		exit(0);
+	}
+
+	glGenTextures(1, &textureArray[texture]);
+	glBindTexture(GL_TEXTURE_2D, textureArray[texture]);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, pImage->sizeX, pImage->sizeY, GL_RGB, GL_UNSIGNED_BYTE, pImage->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+	if (pImage){
+		if (pImage->data){
+			free(pImage->data);
+		}
+		free(pImage);
+	}
 }
