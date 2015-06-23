@@ -52,7 +52,7 @@ void init()
 //	printf(res.c_str());
 
 	// Linux
-    MyMesh.loadMesh("reflectivescene.obj", true);
+    MyMesh.loadMesh("cornell.obj", true);
 	// Windows
 //	MyMesh.loadMesh(res.c_str(), true);
 
@@ -151,7 +151,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 			// Finished product. intPoint is the intersection point.
 			intPoint = origin + t*dest;
 
-			float D2 = Vec3Df::distance(intPoint, origin);
+			float D2 = Vec3Df::distance(intPoint, MyCameraPosition);
 
 			if (D2 < dMax) {
 				// vertex0 = static point, A.
@@ -294,6 +294,7 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	
 	Vec3Df diffuse;
 	Vec3Df specular;
+	Vec3Df ambient = mat.Ka();
 	Vec3Df viewDirec = hitPoint - MyCameraPosition;
 	viewDirec.normalize();
 	
@@ -319,13 +320,17 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 		specular += mat.Ks() * pow(angle, mat.Ns());
 	}
 	
-	if (specular[0] > 1) specular[0] = 1;
-	if (specular[1] > 1) specular[1] = 1;
-	if (specular[2] > 1) specular[2] = 1;
+	// if (specular[0] > 1) specular[0] = 1;
+	// if (specular[1] > 1) specular[1] = 1;
+	// if (specular[2] > 1) specular[2] = 1;
+	
+	specular = specular/MyLightPositions.size();
+	
+	ambient = ambient/MyLightPositions.size();
 	
 	// cap
 
-	return (mat.Ka() + diffuse + 0.5*specular);
+	return (ambient + diffuse + 0.5*specular);
 }
 
 
@@ -342,12 +347,12 @@ Vec3Df shade(int& level, Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& des
 	Vec3Df direct = computeDirectLight(triangleIndex, interpNormal, hitPoint);
 	Vec3Df refColor;
 
-	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 20 && level < 4 ){
-		Vec3Df refRay = computeReflectedRay(dest, normal);
+	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 20 && level < 10 ){
+		Vec3Df refRay = computeReflectedRay(dest, interpNormal);
 		
 		refColor += performRayTracing(++level,hitPoint,refRay);
 	}
-	return direct + 0.3*refColor;
+	return direct + .5*refColor;
 }
 
 

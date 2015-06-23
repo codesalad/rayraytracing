@@ -32,8 +32,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 250;  // resolution X
-unsigned int WindowSize_Y = 250;  // resolution Y
+unsigned int WindowSize_X = 800;  // resolution X
+unsigned int WindowSize_Y = 800;  // resolution Y
 
 
 /**
@@ -222,7 +222,6 @@ void keyboard(unsigned char key, int x, int y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
-				++progressc;
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
 				float xscale=1.0f-float(x)/(WindowSize_X-1);
@@ -251,7 +250,7 @@ void keyboard(unsigned char key, int x, int y)
 				Vec3Df rgb = threads[count].get();
 				//store the result in an image 
 				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
-				printf("\r[Raytracing][%.0f%%]", (progressc / (WindowSize_X*WindowSize_Y)) * 100 - 100); // - 100 because else it would be 200%...
+				printf("\r[Raytracing][%.0f%%]", (progressc / (WindowSize_X*WindowSize_Y)) * 100); // 
 				++count;
 			}
 		}
