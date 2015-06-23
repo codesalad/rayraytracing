@@ -13,6 +13,7 @@
 #include "raytracing.h"
 #include "Vec3D.h"
 
+
 using namespace std;
 //temporary variables
 //these are only used to illustrate 
@@ -30,6 +31,7 @@ float ymax = -FLT_MAX;
 float zmin = FLT_MAX;
 float zmax = -FLT_MAX;
 
+
 //use this function for any preprocessing of the mesh.
 void init()
 {
@@ -41,19 +43,19 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 
-
-	// wchar_t buffer[MAX_PATH];
-	// GetModuleFileName(NULL, buffer, MAX_PATH);
-	// wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
-	// wstring path = wstring(buffer).substr(0, pos + 1);
-	// path += L"3Dscene.obj";
-	// string res(path.begin(), path.end());
-	// printf(res.c_str());
+//	wchar_t buffer[MAX_PATH];
+//	GetModuleFileName(NULL, buffer, MAX_PATH);
+//	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
+//	wstring path = wstring(buffer).substr(0, pos + 1);
+//	path += L"3Dscene.obj";
+//	string res(path.begin(), path.end());
+//	printf(res.c_str());
 
 	// Linux
-    MyMesh.loadMesh("monkey.obj", true);
+    	MyMesh.loadMesh("reflectivescene.obj", true);
 	// Windows
-	// MyMesh.loadMesh(res.c_str(), true);
+//	MyMesh.loadMesh(res.c_str(), true);
+
 	MyMesh.computeVertexNormals();
 	vector<Vertex>& vertices = MyMesh.vertices;
 
@@ -149,7 +151,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 			// Finished product. intPoint is the intersection point.
 			intPoint = origin + t*dest;
 
-			float D2 = Vec3Df::distance(intPoint, MyCameraPosition);
+			float D2 = Vec3Df::distance(intPoint, origin);
 
 			if (D2 < dMax) {
 				// vertex0 = static point, A.
@@ -174,9 +176,13 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 				if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
 					vector<float> intersectData;
 					
-					intersectData.push_back(normal[0]);
-					intersectData.push_back(normal[1]);
-					intersectData.push_back(normal[2]);
+					intersectData.push_back(intPoint[0]); // 0
+					intersectData.push_back(intPoint[1]); // 1
+					intersectData.push_back(intPoint[2]); // 2
+					
+					intersectData.push_back(normal[0]); // 3
+					intersectData.push_back(normal[1]); // 4
+					intersectData.push_back(normal[2]); // 5
 					
 					// Interpolate vertex normals for smooth shading.					
 					Vec3D<float> interp1 = Vec3D<float>::interpolate(intPoint, vertex0.n, w);
@@ -187,11 +193,11 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 					
 					interpSum.normalize();
 					
-					intersectData.push_back(interpSum[0]);
-					intersectData.push_back(interpSum[1]);
-					intersectData.push_back(interpSum[2]);
+					intersectData.push_back(interpSum[0]); // 6
+					intersectData.push_back(interpSum[1]); // 7
+					intersectData.push_back(interpSum[2]); // 8
 
-					intersectData.push_back((float)i);
+					intersectData.push_back((float)i); // last
 					closestIntersect = intersectData;
 					dMax = D2;
 				} 
@@ -204,11 +210,12 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 	}
 }
 
+
 /**
 * Computes the direct color using the hitPoint and the triangleIndex.
 * Returns RGB Vec3Df.
 */
-Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn, Vec3Df& interpNormal)
+Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, const Vec3Df& origin)
 {
 	
 	vector<Triangle>& triangles = MyMesh.triangles;
@@ -234,43 +241,53 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn, Vec3Df& interpNo
 		Vec3Df halfDirec = viewDirec - lightray;
 		halfDirec.normalize();
 		float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
-		specular += .5 *  mat.Ks() * pow(angle, mat.Ns());
+		specular += .3 *  mat.Ks() * pow(angle, mat.Ns());
 	}
 
 	return (mat.Ka() + diffuse + specular);
 }
 
+
+Vec3Df computeReflectedRay(const Vec3Df& ray, Vec3Df& normalIn)
+{
+	Vec3Df normal = normalIn;
+	Vec3Df dest = ray;
+	dest.normalize();
+	return (dest - 2 * Vec3D<float>::dotProduct(normal,dest) * normal);
+}
+
+Vec3Df shade(int& level, Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& dest, Vec3Df& normal, Vec3Df& interpNormal, const Vec3Df& origin)
+{
+	Vec3Df direct = computeDirectLight(triangleIndex, interpNormal, origin);
+	Vec3Df refColor;
+
+	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 0 && level < 4 ){
+		Vec3Df refRay = computeReflectedRay(dest, normal);
+		
+		refColor += performRayTracing(++level,hitPoint,refRay);
+	}
+	return direct + 0.3*refColor;
+}
+
+
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
+Vec3Df performRayTracing(int level, const Vec3Df & origin, const Vec3Df & dest)
 {
 	vector<float> intersectData = intersect(origin, dest);
-	if (intersectData.size() > 0) {
-		Vec3Df normal = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
-		Vec3Df interpNormal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
-		// Vec3Df interpNormal = normal;
+
+	if (intersectData.size() > 0 ) {
+		Vec3Df hitPoint = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
+		Vec3Df normal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
+		Vec3Df interpNormal = Vec3Df(intersectData.at(6), intersectData.at(7), intersectData.at(8));
 		int triangleIndex = (int)intersectData.back();
-		Vec3Df colorRGB = computeDirectLight(triangleIndex, normal, interpNormal);
+		Vec3Df colorRGB = shade(level, hitPoint, triangleIndex, dest, normal, interpNormal, origin);
+		
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
-	return Vec3Df(0, 0, 0);
-}
-
-void PutPixel(int& x, int& y, Vec3Df& color)
-{
+	return Vec3Df(0,0,0);
 
 }
 
-void Shade(int& level, Vec3Df& hit, Vec3Df& color)
-{
-	/*Vec3Df directColor, reflectedRay, reflectedColor, refractedRay, refractedColor;
-
-	ComputeDirectLight( hit, &directColor );
-	ComputeReflectedRay( hit, &reflectedRay );
-	Trace( level+1, reflectedRay, &reflectedColor );
-	ComputeRefractedRay( hit, &refractedRay );
-	Trace( level+1, refractedRay, &refractedColor );
-	color = directColor + reflection * reflectedColor + transmission * refractedColor;*/
-}
 
 void yourDebugDraw()
 {
@@ -509,3 +526,6 @@ float Max(float f1, float f2, float f3)
 {
 	return Max(Max(f1, f2), f3);
 }
+
+
+
