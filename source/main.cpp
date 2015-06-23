@@ -15,6 +15,7 @@
 #include <future>
 #include <thread>
 
+
 //This is the main application
 //Most of the code in here, does not need to be modified.
 //It is enough to take a look at the function "drawFrame",
@@ -31,8 +32,9 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 300;  // resolution X
-unsigned int WindowSize_Y = 300;  // resolution Y
+unsigned int WindowSize_X = 250;  // resolution X
+unsigned int WindowSize_Y = 250;  // resolution Y
+
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -220,6 +222,7 @@ void keyboard(unsigned char key, int x, int y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
+				++progressc;
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
 				float xscale=1.0f-float(x)/(WindowSize_X-1);
@@ -230,8 +233,12 @@ void keyboard(unsigned char key, int x, int y)
 				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
+
+				Vec3Df rgb;
+				
+				rgb.init(0,0,0);
 				//launch raytracing for the given ray.
-				threads.push_back(std::async(performRayTracing, origin, dest));
+				threads.push_back(std::async(performRayTracing, 0, origin, dest));
 			}
 		}
 
@@ -244,7 +251,7 @@ void keyboard(unsigned char key, int x, int y)
 				Vec3Df rgb = threads[count].get();
 				//store the result in an image 
 				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
-				printf("\r[Raytracing][%.0f%%]", (progressc / (WindowSize_X*WindowSize_Y)) * 100);
+				printf("\r[Raytracing][%.0f%%]", (progressc / (WindowSize_X*WindowSize_Y)) * 100 - 100); // - 100 because else it would be 200%...
 				++count;
 			}
 		}
