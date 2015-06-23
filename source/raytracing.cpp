@@ -51,7 +51,7 @@ void init()
 	// printf(res.c_str());
 
 	// Linux
-    MyMesh.loadMesh("monkey.obj", true);
+    MyMesh.loadMesh("reflectivescene.obj", true);
 	// Windows
 	// MyMesh.loadMesh(res.c_str(), true);
 	MyMesh.computeVertexNormals();
@@ -184,12 +184,16 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 					Vec3D<float> interp3 = Vec3D<float>::interpolate(intPoint, vertex2.n, v);
 						
 					Vec3D<float> interpSum = interp1 + interp2 + interp3;
-					
+										
 					interpSum.normalize();
 					
 					intersectData.push_back(interpSum[0]);
 					intersectData.push_back(interpSum[1]);
 					intersectData.push_back(interpSum[2]);
+					
+					intersectData.push_back(intPoint[0]);
+					intersectData.push_back(intPoint[1]);
+					intersectData.push_back(intPoint[2]);
 
 					intersectData.push_back((float)i);
 					closestIntersect = intersectData;
@@ -204,11 +208,79 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 	}
 }
 
+bool lightTest(const Vec3Df& origin, Vec3Df& hitPoint, int& triangleIndex) 
+{
+	Vec3D<float> dest(hitPoint - origin);
+	dest.normalize();
+	vector<Triangle>& triangles = MyMesh.triangles;
+	Vec3D<float> intPoint;
+	float dMax = FLT_MAX;
+	int index(0);
+	for (unsigned int i = 0; i < triangles.size(); ++i) {
+		// Initialize the 3 vertex points of the triangle.
+		Vertex& vertex0 = MyMesh.vertices.at(triangles.at(i).v[0]);
+		Vertex& vertex1 = MyMesh.vertices.at(triangles.at(i).v[1]);
+		Vertex& vertex2 = MyMesh.vertices.at(triangles.at(i).v[2]);
+
+		// Calculate the two edges.
+		// Vector v0 = Vector 1 - Vector 0.
+		// Vecotr v1 = Vector 2 - Vector 0.
+		Vec3D<float> v0(vertex1.p[0] - vertex0.p[0], vertex1.p[1] - vertex0.p[1], vertex1.p[2] - vertex0.p[2]);
+		Vec3D<float> v1(vertex2.p[0] - vertex0.p[0], vertex2.p[1] - vertex0.p[1], vertex2.p[2] - vertex0.p[2]);
+		
+		// Calculate the distance plane to origin.
+		// Using a vertex from the triangle, orthogonally project onto normal vector.
+		Vec3D<float> normal = Vec3D<float>::crossProduct(v0, v1);
+
+		// Saw in the slides... not sure if we need this?
+		normal.normalize();
+		// if (Vec3D<float>::dotProduct(v0,normal) < 0) {
+		// 	normal = -normal;
+		// }
+
+		Vec3D<float> vertexVector(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
+		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
+		float t = (D - Vec3D<float>::dotProduct(origin, normal)) / Vec3D<float>::dotProduct(dest, normal);
+
+		//const Vec3D<float>& origin2 = origin;
+		//const Vec3D<float>& dest2 = dest;
+		// Finished product. intPoint is the intersection point.
+		intPoint = origin + t*dest;
+
+		float D2 = Vec3Df::distance(intPoint, origin);
+
+		if (D2 < dMax) {
+			// vertex0 = static point, A.
+			// v0, v1 still the 2 edges connected to vertex0.
+			// v2 = P - A.
+			Vec3D<float> v2(intPoint.p[0] - vertex0.p[0], intPoint.p[1] - vertex0.p[1], intPoint.p[2] - vertex0.p[2]);
+
+			// These dot products are derived from the linear combinations of edges.
+			// u and v are the barycentric coordinates.
+			float dot00 = Vec3D<float>::dotProduct(v0, v0);
+			float dot01 = Vec3D<float>::dotProduct(v0, v1);
+			float dot02 = Vec3D<float>::dotProduct(v0, v2);
+			float dot11 = Vec3D<float>::dotProduct(v1, v1);
+			float dot12 = Vec3D<float>::dotProduct(v1, v2);
+
+			float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;			
+			if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
+				index = i;
+				dMax = D2;
+			} 
+		}
+	}
+	return (index==triangleIndex);
+	
+}
+
 /**
 * Computes the direct color using the hitPoint and the triangleIndex.
 * Returns RGB Vec3Df.
 */
-Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn, Vec3Df& interpNormal)
+Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn, Vec3Df& interpNormal, Vec3Df& hitPoint)
 {
 	
 	vector<Triangle>& triangles = MyMesh.triangles;
@@ -219,25 +291,38 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn, Vec3Df& interpNo
 	
 	Vec3Df diffuse;
 	Vec3Df specular;
-	Vec3Df viewDirec = MyCameraPosition/MyCameraPosition.getLength();
+	Vec3Df viewDirec = hitPoint - MyCameraPosition;
+	viewDirec.normalize();
+	
 
 	for (int i = 0; i < MyLightPositions.size(); ++i) {	
-		Vec3D<float> lightray = MyLightPositions[i];
+		Vec3D<float> lightray = hitPoint - MyLightPositions[i];
 	
 		// Diffuse
 		lightray.normalize();	// normalize.
-		interpNormal.normalize();
-		float c = abs(Vec3D<float>::dotProduct(lightray, interpNormal));
-		diffuse += mat.Kd() * c;
+		float c = Vec3D<float>::dotProduct(lightray, interpNormal);
+			
+		// Check if the hitpoint sees the light		
+		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
+			diffuse += mat.Kd() * abs(c);
+		} else {
+			diffuse += mat.Kd() * 0.05; // Fake ambient in case of total shadow.
+		}
 	
 		// Specular
-		Vec3Df halfDirec = viewDirec - lightray;
+		Vec3Df halfDirec = viewDirec + lightray;
 		halfDirec.normalize();
 		float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
-		specular += .5 *  mat.Ks() * pow(angle, mat.Ns());
+		specular += mat.Ks() * pow(angle, mat.Ns());
 	}
+	
+	if (specular[0] > 1) specular[0] = 1;
+	if (specular[1] > 1) specular[1] = 1;
+	if (specular[2] > 1) specular[2] = 1;
+	
+	// cap
 
-	return (mat.Ka() + diffuse + specular);
+	return (mat.Ka() + diffuse + 0.5*specular);
 }
 
 //return the color of your pixel.
@@ -247,12 +332,13 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	if (intersectData.size() > 0) {
 		Vec3Df normal = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
 		Vec3Df interpNormal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
+		Vec3Df hitPoint = Vec3Df(intersectData.at(6), intersectData.at(7), intersectData.at(8));
 		// Vec3Df interpNormal = normal;
 		int triangleIndex = (int)intersectData.back();
-		Vec3Df colorRGB = computeDirectLight(triangleIndex, normal, interpNormal);
+		Vec3Df colorRGB = computeDirectLight(triangleIndex, normal, interpNormal, hitPoint);
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
-	return Vec3Df(0, 0, 0);
+	return Vec3Df(.1, .1, .15);
 }
 
 void PutPixel(int& x, int& y, Vec3Df& color)
@@ -452,37 +538,6 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	
 	// cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
-
-/*bool intersectBoundingBox(const Vec3Df& origin, const Vec3Df& dest)
-{
-	// bounding box
-	Vec3Df bborigin = origin;
-	Vec3Df bbdest = dest;
-
-	float txmin = (xmin - bborigin[0]) / bbdest[0];
-	float txmax = (xmax - bborigin[0]) / bbdest[0];
-	float tymin = (ymin - bborigin[1]) / bbdest[1];
-	float tymax = (ymax - bborigin[1]) / bbdest[1];
-	float tzmin = (zmin - bborigin[2]) / bbdest[2];
-	float tzmax = (zmax - bborigin[2]) / bbdest[2];
-
-	float tinx = min(txmin, txmax);
-	float toutx = max(txmin, txmax);
-	float tiny = min(tymin, tymax);
-	float touty = max(tymin, tymax);
-	float tinz = min(tzmin, tzmax);
-	float toutz = max(tzmin, tzmax);
-	float tin = max(tinx, tiny, tinz);
-	float tout = min(toutx, touty, toutz);
-	if (tin > tout || tout < 0)
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}*/
 
 float Min(float f1, float f2)
 {
