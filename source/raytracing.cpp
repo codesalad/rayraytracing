@@ -51,7 +51,7 @@ void init()
 	// printf(res.c_str());
 
 	// Linux
-    MyMesh.loadMesh("3Dscene.obj", true);
+    MyMesh.loadMesh("monkey.obj", true);
 	// Windows
 	// MyMesh.loadMesh(res.c_str(), true);
 	MyMesh.computeVertexNormals();
@@ -168,15 +168,28 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 				float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
 				float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 				float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+				// The third is not needed at the moment, but for interpolating vertex normals:
+				float w = (1.0f - u - v); 
+				
 				if ( (u >= 0) && (v >= 0) && (u + v < 1) ) {
 					vector<float> intersectData;
-					// intersectData.push_back(intPoint.p[0]);
-					// intersectData.push_back(intPoint.p[1]);
-					// intersectData.push_back(intPoint.p[2]);
-
+					
 					intersectData.push_back(normal[0]);
 					intersectData.push_back(normal[1]);
 					intersectData.push_back(normal[2]);
+					
+					// Interpolate vertex normals for smooth shading.					
+					Vec3D<float> interp1 = Vec3D<float>::interpolate(intPoint, vertex0.n, w);
+					Vec3D<float> interp2 = Vec3D<float>::interpolate(intPoint, vertex1.n, u);
+					Vec3D<float> interp3 = Vec3D<float>::interpolate(intPoint, vertex2.n, v);
+						
+					Vec3D<float> interpSum = interp1 + interp2 + interp3;
+					
+					interpSum.normalize();
+					
+					intersectData.push_back(interpSum[0]);
+					intersectData.push_back(interpSum[1]);
+					intersectData.push_back(interpSum[2]);
 
 					intersectData.push_back((float)i);
 					closestIntersect = intersectData;
@@ -195,7 +208,7 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 * Computes the direct color using the hitPoint and the triangleIndex.
 * Returns RGB Vec3Df.
 */
-Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn)
+Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn, Vec3Df& interpNormal)
 {
 	
 	vector<Triangle>& triangles = MyMesh.triangles;
@@ -213,13 +226,14 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& normalIn)
 	
 		// Diffuse
 		lightray.normalize();	// normalize.
-		float c = abs(Vec3D<float>::dotProduct(lightray, normalIn));
+		interpNormal.normalize();
+		float c = abs(Vec3D<float>::dotProduct(lightray, interpNormal));
 		diffuse += mat.Kd() * c;
 	
 		// Specular
 		Vec3Df halfDirec = viewDirec - lightray;
 		halfDirec.normalize();
-		float angle = abs(Vec3D<float>::dotProduct(halfDirec,normalIn));
+		float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
 		specular += .5 *  mat.Ks() * pow(angle, mat.Ns());
 	}
 
@@ -232,8 +246,10 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	vector<float> intersectData = intersect(origin, dest);
 	if (intersectData.size() > 0) {
 		Vec3Df normal = Vec3Df(intersectData.at(0), intersectData.at(1), intersectData.at(2));
+		Vec3Df interpNormal = Vec3Df(intersectData.at(3), intersectData.at(4), intersectData.at(5));
+		// Vec3Df interpNormal = normal;
 		int triangleIndex = (int)intersectData.back();
-		Vec3Df colorRGB = computeDirectLight(triangleIndex, normal);
+		Vec3Df colorRGB = computeDirectLight(triangleIndex, normal, interpNormal);
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
 	return Vec3Df(0, 0, 0);
