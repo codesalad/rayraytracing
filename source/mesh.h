@@ -43,6 +43,9 @@ class Material
             Tr_is_set_=m.Tr_is_set_; // transparency (use this value to trade off reflection/refraction
             illum_ = m.illum_;		
             name_=m.name_;
+            
+            type_=m.type_; // to check if we have to smooth or not
+            
             return (*this);
         };
 
@@ -89,6 +92,9 @@ class Material
 
         void set_Tr( float t )
         { Tr_=t;            Tr_is_set_=true; }
+        
+        void set_Type( std::string& t )   //smooth / flat
+        { type_=t;}
 
         void set_textureName(const std::string & s)//name of the texture image file
         {
@@ -107,6 +113,9 @@ class Material
         float  Ns( void ) const { return Ns_; } //shininess
         int       illum(void)const { return illum_;}
         float  Tr( void ) const { return Tr_; }//can be hijacked, e.g., for transparency
+        
+        std::string& Type( void ) {return type_;} // smooth/flat
+        
         const std::string & textureName()//name of the texture image file
         {
             return textureName_;
@@ -125,7 +134,8 @@ class Material
         float Ns_;                     bool Ns_is_set_; 
         float Ni_;                     bool Ni_is_set_; 
         int illum_;                     bool illum_is_set_;//illumination model
-        float Tr_;         bool Tr_is_set_; // transperency
+        float Tr_;         bool Tr_is_set_; // transperency <- typo
+        std::string         type_;
         std::string        name_;
         std::string        textureName_;
     };

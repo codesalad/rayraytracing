@@ -1,6 +1,6 @@
 # Blender v2.74 (sub 0) OBJ File: '3dscene.blend'
 # www.blender.org
-mtllib 3dscene.mtl
+mtllib 3dscene-checkerboard.mtl
 o Torus.003
 v -1.079854 -1.045549 -2.795859
 v -1.079854 -0.745549 -2.272967

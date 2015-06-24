@@ -44,7 +44,7 @@ void init()
 	//otherwise the application will not load properly
 
 	// put object filename here without extension (will be appended automatically)
-	const char* object = "3dscene-checkerboard";
+	const char* object = "3Dscene";
 
 	// append extension
 	string objectStr = object;
@@ -316,31 +316,29 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 		// Diffuse
 		lightray.normalize();	// normalize.
 		float c = Vec3D<float>::dotProduct(lightray, interpNormal);
-			
-		// Check if the hitpoint sees the light		
-		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
-			diffuse += mat.Kd() * abs(c);
-		} else {
-			diffuse += mat.Kd() * 0.05f; // Fake ambient in case of total shadow.
-		}
-	
+		
 		// Specular
 		Vec3Df halfDirec = viewDirec + lightray;
 		halfDirec.normalize();
-		float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
-		specular += mat.Ks() * pow(angle, mat.Ns());
+			
+		// Check if the hitpoint sees the light		
+		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
+			// Diffuse
+			diffuse += mat.Kd() * abs(c);
+			
+			// Specular
+			float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
+			specular += mat.Ks() * pow(angle, mat.Ns());
+		} else {
+			diffuse += mat.Kd() * 0.2f; // Fake ambient in case of total shadow.
+		}
 	}
 	
-	// if (specular[0] > 1) specular[0] = 1;
-	// if (specular[1] > 1) specular[1] = 1;
-	// if (specular[2] > 1) specular[2] = 1;
-	
+	// cap
 	specular = specular/(float)MyLightPositions.size();
-	
 	ambient = ambient/(float)MyLightPositions.size();
 	
-	// cap
-
+	// cout << " type: " << mat.Type() << endl; 
 	return (ambient + diffuse + 0.5*specular);
 }
 
@@ -355,11 +353,20 @@ Vec3Df computeReflectedRay(const Vec3Df& ray, Vec3Df& normalIn)
 
 Vec3Df shade(int& level, Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& dest, Vec3Df& normal, Vec3Df& interpNormal, const Vec3Df& origin)
 {
-	Vec3Df direct = computeDirectLight(triangleIndex, interpNormal, hitPoint);
+	Material& mat = MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex));
+	
+	Vec3Df typeNormal; 
+	if (mat.Type().compare("flat") == 0) {
+		typeNormal = normal;
+	} else {
+		typeNormal = interpNormal;
+	}
+	
+	Vec3Df direct = computeDirectLight(triangleIndex, typeNormal, hitPoint);
 	Vec3Df refColor;
 
-	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 50 && level < 10 ){
-		Vec3Df refRay = computeReflectedRay(origin, interpNormal);
+	if( mat.Ns() > 50 && level < 8 ){
+		Vec3Df refRay = computeReflectedRay(origin, typeNormal);
 		
 		refColor += performRayTracing(++level,hitPoint,refRay);
 	}
