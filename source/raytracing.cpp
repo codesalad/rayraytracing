@@ -48,7 +48,7 @@ void init()
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	wstring path = wstring(buffer).substr(0, pos + 1);
-	path += L"3Dscene.obj";
+	path += L"checkerboard-subdivided.obj";
 	string res(path.begin(), path.end());
 	printf(res.c_str());
 	MyMesh.loadMesh(res.c_str(), true);
