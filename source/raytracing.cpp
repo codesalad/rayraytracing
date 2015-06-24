@@ -43,18 +43,19 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 
-//	wchar_t buffer[MAX_PATH];
-//	GetModuleFileName(NULL, buffer, MAX_PATH);
-//	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
-//	wstring path = wstring(buffer).substr(0, pos + 1);
-//	path += L"3Dscene.obj";
-//	string res(path.begin(), path.end());
-//	printf(res.c_str());
+	// WINDOWS
+	wchar_t buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
+	wstring path = wstring(buffer).substr(0, pos + 1);
+	path += L"3Dscene.obj";
+	string res(path.begin(), path.end());
+	printf(res.c_str());
+	MyMesh.loadMesh(res.c_str(), true);
 
 	// Linux
-    MyMesh.loadMesh("cornell.obj", true);
-	// Windows
-//	MyMesh.loadMesh(res.c_str(), true);
+    // MyMesh.loadMesh("cornell.obj", true);
+
 
 	MyMesh.computeVertexNormals();
 	vector<Vertex>& vertices = MyMesh.vertices;
@@ -347,7 +348,7 @@ Vec3Df shade(int& level, Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& des
 	Vec3Df direct = computeDirectLight(triangleIndex, interpNormal, hitPoint);
 	Vec3Df refColor;
 
-	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 20 && level < 10 ){
+	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 50 && level < 8 ){
 		Vec3Df refRay = computeReflectedRay(dest, interpNormal);
 		
 		refColor += performRayTracing(++level,hitPoint,refRay);
