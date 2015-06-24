@@ -309,7 +309,7 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	viewDirec.normalize();
 	
 
-	for (int i = 0; i < MyLightPositions.size(); ++i) {	
+	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {	
 		Vec3D<float> lightray = hitPoint - MyLightPositions[i];
 		// Vec3D<float> lightray = MyLightPositions[i] - hitPoint;
 	
@@ -321,7 +321,7 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
 			diffuse += mat.Kd() * abs(c);
 		} else {
-			diffuse += mat.Kd() * 0.05; // Fake ambient in case of total shadow.
+			diffuse += mat.Kd() * 0.05f; // Fake ambient in case of total shadow.
 		}
 	
 		// Specular
@@ -335,9 +335,9 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	// if (specular[1] > 1) specular[1] = 1;
 	// if (specular[2] > 1) specular[2] = 1;
 	
-	specular = specular/MyLightPositions.size();
+	specular = specular/(float)MyLightPositions.size();
 	
-	ambient = ambient/MyLightPositions.size();
+	ambient = ambient/(float)MyLightPositions.size();
 	
 	// cap
 
@@ -381,7 +381,7 @@ Vec3Df performRayTracing(int level, const Vec3Df & origin, const Vec3Df & dest)
 		
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
-	return Vec3Df(.1, .1, .15);
+	return Vec3Df(.1f, .1f, .15f);
 }
 
 
