@@ -43,19 +43,27 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 
+	// put object filename here without extension (will be appended automatically)
+	const char* object = "3Dscene";
+
+	// append extension
+	string objectStr = object;
+	objectStr += ".obj";
+	object = objectStr.c_str();
+
 	// WINDOWS
 #ifdef _WIN32
 	 wchar_t buffer[MAX_PATH];
 	 GetModuleFileName(NULL, buffer, MAX_PATH);
 	 wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	 wstring path = wstring(buffer).substr(0, pos + 1);
-	 path += L"3Dcheckerboard2.obj";
+	 path += wstring(objectStr.begin(), objectStr.end());
 	 string res(path.begin(), path.end());
 	 MyMesh.loadMesh(res.c_str(), true);
 
 	// Linux
 #elif __linux__
-    MyMesh.loadMesh("3Dscene.obj", true);
+    MyMesh.loadMesh(object, true);
 #endif
 
 
@@ -301,7 +309,7 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	viewDirec.normalize();
 	
 
-	for (int i = 0; i < MyLightPositions.size(); ++i) {	
+	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {	
 		Vec3D<float> lightray = hitPoint - MyLightPositions[i];
 		// Vec3D<float> lightray = MyLightPositions[i] - hitPoint;
 	
@@ -313,7 +321,7 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
 			diffuse += mat.Kd() * abs(c);
 		} else {
-			diffuse += mat.Kd() * 0.05; // Fake ambient in case of total shadow.
+			diffuse += mat.Kd() * 0.05f; // Fake ambient in case of total shadow.
 		}
 	
 		// Specular
@@ -327,9 +335,9 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	// if (specular[1] > 1) specular[1] = 1;
 	// if (specular[2] > 1) specular[2] = 1;
 	
-	specular = specular/MyLightPositions.size();
+	specular = specular/(float)MyLightPositions.size();
 	
-	ambient = ambient/MyLightPositions.size();
+	ambient = ambient/(float)MyLightPositions.size();
 	
 	// cap
 
@@ -373,7 +381,7 @@ Vec3Df performRayTracing(int level, const Vec3Df & origin, const Vec3Df & dest)
 		
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
-	return Vec3Df(.1, .1, .15);
+	return Vec3Df(.1f, .1f, .15f);
 }
 
 
