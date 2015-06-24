@@ -44,7 +44,7 @@ void init()
 	//otherwise the application will not load properly
 
 	// put object filename here without extension (will be appended automatically)
-	const char* object = "3Dscene";
+	const char* object = "3dscene-checkerboard";
 
 	// append extension
 	string objectStr = object;
