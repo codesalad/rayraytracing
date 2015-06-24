@@ -44,17 +44,20 @@ void init()
 	//otherwise the application will not load properly
 
 	// WINDOWS
-	// wchar_t buffer[MAX_PATH];
-	// GetModuleFileName(NULL, buffer, MAX_PATH);
-	// wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
-	// wstring path = wstring(buffer).substr(0, pos + 1);
-	// path += L"3Dscene.obj";
-	// string res(path.begin(), path.end());
-	// printf(res.c_str());
-	// MyMesh.loadMesh(res.c_str(), true);
+#ifdef _WIN32
+	 wchar_t buffer[MAX_PATH];
+	 GetModuleFileName(NULL, buffer, MAX_PATH);
+	 wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
+	 wstring path = wstring(buffer).substr(0, pos + 1);
+	 path += L"3Dscene.obj";
+	 string res(path.begin(), path.end());
+	 printf(res.c_str());
+	 MyMesh.loadMesh(res.c_str(), true);
 
 	// Linux
+#elif __linux__
     MyMesh.loadMesh("3Dscene.obj", true);
+#endif
 
 
 	MyMesh.computeVertexNormals();
