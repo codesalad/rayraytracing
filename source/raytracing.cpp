@@ -49,7 +49,7 @@ void init()
 	 GetModuleFileName(NULL, buffer, MAX_PATH);
 	 wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	 wstring path = wstring(buffer).substr(0, pos + 1);
-	 path += L"3Dscene.obj";
+	 path += L"3Dcheckerboard2.obj";
 	 string res(path.begin(), path.end());
 	 MyMesh.loadMesh(res.c_str(), true);
 
