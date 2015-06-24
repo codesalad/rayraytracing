@@ -51,7 +51,6 @@ void init()
 	 wstring path = wstring(buffer).substr(0, pos + 1);
 	 path += L"3Dscene.obj";
 	 string res(path.begin(), path.end());
-	 printf(res.c_str());
 	 MyMesh.loadMesh(res.c_str(), true);
 
 	// Linux
