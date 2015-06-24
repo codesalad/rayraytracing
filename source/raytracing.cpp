@@ -513,7 +513,7 @@ void DecodeJPG(jpeg_decompress_struct* cinfo, tImageJPG *pImageData){
 	jpeg_finish_decompress(cinfo);
 }
 
-tImageJPG * LoadJPG(const char *fileName) {
+ tImageJPG * LoadJPG(const char *fileName) {
 	struct jpeg_decompress_struct cinfo;
 	tImageJPG *pImageData = NULL;
 	FILE *pFile;
