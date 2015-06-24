@@ -43,19 +43,27 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 
+	// put object filename here without extension (will be appended automatically)
+	const char* object = "3Dscene";
+
+	// append extension
+	string objectStr = object;
+	objectStr += ".obj";
+	object = objectStr.c_str;
+
 	// WINDOWS
 #ifdef _WIN32
 	 wchar_t buffer[MAX_PATH];
 	 GetModuleFileName(NULL, buffer, MAX_PATH);
 	 wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	 wstring path = wstring(buffer).substr(0, pos + 1);
-	 path += L"3Dscene.obj";
+	 path += wstring(objectStr.begin(), objectStr.end());
 	 string res(path.begin(), path.end());
 	 MyMesh.loadMesh(res.c_str(), true);
 
 	// Linux
 #elif __linux__
-    MyMesh.loadMesh("3Dscene.obj", true);
+    MyMesh.loadMesh(object, true);
 #endif
 
 
