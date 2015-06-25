@@ -312,21 +312,18 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {	
 		Vec3D<float> lightray = hitPoint - MyLightPositions[i];
 		// Vec3D<float> lightray = MyLightPositions[i] - hitPoint;
-	
-		// Diffuse
-		lightray.normalize();	// normalize.
-		float c = Vec3D<float>::dotProduct(lightray, interpNormal);
-		
-		// Specular
-		Vec3Df halfDirec = viewDirec + lightray;
-		halfDirec.normalize();
 			
 		// Check if the hitpoint sees the light		
-		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
+		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {
+
 			// Diffuse
+			lightray.normalize();	// normalize.
+			float c = Vec3D<float>::dotProduct(lightray, interpNormal);
 			diffuse += mat.Kd() * abs(c);
 			
 			// Specular
+			Vec3Df halfDirec = viewDirec + lightray;
+			halfDirec.normalize();
 			float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
 			specular += mat.Ks() * pow(angle, mat.Ns());
 		} else {
@@ -334,12 +331,8 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 		}
 	}
 	
-	// cap
-	specular = specular/(float)MyLightPositions.size();
-	ambient = ambient/(float)MyLightPositions.size();
-	
 	// cout << " type: " << mat.Type() << endl; 
-	return (ambient + diffuse + specular);
+	return (ambient + diffuse + specular) / (float)MyLightPositions.size();
 }
 
 
