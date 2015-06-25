@@ -441,6 +441,15 @@ bool Mesh::loadMtl(const char * filename, std::map<string, unsigned int> & mater
         {
             sscanf(line, "d %f", &f1);
             mat.set_Tr(f1);
+        } 
+        else if (strncmp(line, "type ", 5)==0 ) // flat or smooth
+        {
+            std::string t = &(line[5]);
+			if (!t.empty() && t[t.length()-1] == '\n') {
+				t.erase(t.length()-1);
+			}
+            mat.set_Type(t);
+            std::cout<< "type is:" << t << std::endl;   
         }
 
         if (feof( _in ) && indef && mat.is_valid() && !key.empty())

@@ -43,18 +43,28 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 
+	// put object filename here without extension (will be appended automatically)
+	const char* object = "3Dscene";
+
+	// append extension
+	string objectStr = object;
+	objectStr += ".obj";
+	object = objectStr.c_str();
+
 	// WINDOWS
+#ifdef _WIN32
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileName(NULL, buffer, MAX_PATH);
 	wstring::size_type pos = wstring(buffer).find_last_of(L"\\/");
 	wstring path = wstring(buffer).substr(0, pos + 1);
-	path += L"checkerboard-subdivided.obj";
+	 path += wstring(objectStr.begin(), objectStr.end());
 	string res(path.begin(), path.end());
-	printf(res.c_str());
 	MyMesh.loadMesh(res.c_str(), true);
 
 	// Linux
-    // MyMesh.loadMesh("cornell.obj", true);
+#elif __linux__
+    MyMesh.loadMesh(object, true);
+#endif
 
 
 	MyMesh.computeVertexNormals();
@@ -186,12 +196,11 @@ vector<float> intersect(const Vec3Df & origin, const Vec3Df & dest)
 					intersectData.push_back(normal[2]); // 5
 					
 					// Interpolate vertex normals for smooth shading.					
-					Vec3D<float> interp1 = Vec3D<float>::interpolate(intPoint, vertex0.n, w);
-					Vec3D<float> interp2 = Vec3D<float>::interpolate(intPoint, vertex1.n, u);
-					Vec3D<float> interp3 = Vec3D<float>::interpolate(intPoint, vertex2.n, v);
+					Vec3D<float> interp1 = Vec3D<float>::interpolate(intPoint, vertex0.n, w); // w 
+					Vec3D<float> interp2 = Vec3D<float>::interpolate(intPoint, vertex1.n, u); // u
+					Vec3D<float> interp3 = Vec3D<float>::interpolate(intPoint, vertex2.n, v); // v
 						
 					Vec3D<float> interpSum = interp1 + interp2 + interp3;
-										
 					interpSum.normalize();
 					
 					intersectData.push_back(interpSum[0]); // 6
@@ -237,9 +246,9 @@ bool lightTest(const Vec3Df& origin, Vec3Df& hitPoint, int& triangleIndex)
 
 		// Saw in the slides... not sure if we need this?
 		normal.normalize();
-		// if (Vec3D<float>::dotProduct(v0,normal) < 0) {
-		// 	normal = -normal;
-		// }
+		if (Vec3D<float>::dotProduct(v0,normal) < 0) {
+			normal = -normal;
+		}
 
 		Vec3D<float> vertexVector(vertex0.p[0], vertex0.p[1], vertex0.p[2]);
 		float D = (Vec3D<float>::dotProduct(vertexVector, normal));
@@ -250,7 +259,7 @@ bool lightTest(const Vec3Df& origin, Vec3Df& hitPoint, int& triangleIndex)
 		// Finished product. intPoint is the intersection point.
 		intPoint = origin + t*dest;
 
-		float D2 = Vec3Df::distance(intPoint, origin);
+		float D2 = Vec3Df::distance(intPoint, MyCameraPosition);
 
 		if (D2 < dMax) {
 			// vertex0 = static point, A.
@@ -300,38 +309,30 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	viewDirec.normalize();
 	
 
-	for (int i = 0; i < MyLightPositions.size(); ++i) {	
+	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {	
 		Vec3D<float> lightray = hitPoint - MyLightPositions[i];
+		// Vec3D<float> lightray = MyLightPositions[i] - hitPoint;
 	
+		// Check if the hitpoint sees the light		
+		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {
+
 		// Diffuse
 		lightray.normalize();	// normalize.
 		float c = Vec3D<float>::dotProduct(lightray, interpNormal);
-			
-		// Check if the hitpoint sees the light		
-		if (lightTest(MyLightPositions[i], hitPoint, triangleIndex)) {		
 			diffuse += mat.Kd() * abs(c);
-		} else {
-			diffuse += mat.Kd() * 0.05; // Fake ambient in case of total shadow.
-		}
 	
 		// Specular
 		Vec3Df halfDirec = viewDirec + lightray;
 		halfDirec.normalize();
 		float angle = abs(Vec3D<float>::dotProduct(halfDirec,interpNormal));
 		specular += mat.Ks() * pow(angle, mat.Ns());
+		} else {
+			diffuse += mat.Kd() * 0.2f; // Fake ambient in case of total shadow.
+		}
 	}
 	
-	// if (specular[0] > 1) specular[0] = 1;
-	// if (specular[1] > 1) specular[1] = 1;
-	// if (specular[2] > 1) specular[2] = 1;
-	
-	specular = specular/MyLightPositions.size();
-	
-	ambient = ambient/MyLightPositions.size();
-	
-	// cap
-
-	return (ambient + diffuse + 0.5*specular);
+	// cout << " type: " << mat.Type() << endl; 
+	return (ambient + diffuse + specular) / (float)MyLightPositions.size();
 }
 
 
@@ -345,11 +346,20 @@ Vec3Df computeReflectedRay(const Vec3Df& ray, Vec3Df& normalIn)
 
 Vec3Df shade(int& level, Vec3Df& hitPoint, int& triangleIndex, const Vec3Df& dest, Vec3Df& normal, Vec3Df& interpNormal, const Vec3Df& origin)
 {
-	Vec3Df direct = computeDirectLight(triangleIndex, interpNormal, hitPoint);
+	Material& mat = MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex));
+	
+	Vec3Df typeNormal; 
+	if (mat.Type().compare("flat") == 0) {
+		typeNormal = normal;
+	} else {
+		typeNormal = interpNormal;
+	}
+	
+	Vec3Df direct = computeDirectLight(triangleIndex, typeNormal, hitPoint);
 	Vec3Df refColor;
 
-	if( MyMesh.materials.at(MyMesh.triangleMaterials.at(triangleIndex)).Ns() > 50 && level < 8 ){
-		Vec3Df refRay = computeReflectedRay(dest, interpNormal);
+	if( mat.Ns() > 50 && level < 8 ){
+		Vec3Df refRay = computeReflectedRay(origin, typeNormal);
 		
 		refColor += performRayTracing(++level,hitPoint,refRay);
 	}
@@ -371,7 +381,7 @@ Vec3Df performRayTracing(int level, const Vec3Df & origin, const Vec3Df & dest)
 		
 		return Vec3Df(colorRGB[0], colorRGB[1], colorRGB[2]);
 	}
-	return Vec3Df(.1, .1, .15);
+	return Vec3Df(.1f, .1f, .15f);
 }
 
 
