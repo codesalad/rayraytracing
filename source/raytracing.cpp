@@ -339,7 +339,7 @@ Vec3Df computeDirectLight(int& triangleIndex, Vec3Df& interpNormal, Vec3Df& hitP
 	ambient = ambient/(float)MyLightPositions.size();
 	
 	// cout << " type: " << mat.Type() << endl; 
-	return (ambient + diffuse + 0.5*specular);
+	return (ambient + diffuse + specular);
 }
 
 
